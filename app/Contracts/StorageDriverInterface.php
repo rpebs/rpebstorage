@@ -3,6 +3,7 @@
 namespace App\Contracts;
 
 use App\Models\StorageAccount;
+use App\Values\QuotaUsage;
 use App\Values\UploadResult;
 
 interface StorageDriverInterface
@@ -25,4 +26,9 @@ interface StorageDriverInterface
      * (e.g. Telegram), which the system treats as unlimited.
      */
     public function getRemainingQuota(StorageAccount $account): ?int;
+
+    /**
+     * Current total/used quota at the provider, used by the quota sync job.
+     */
+    public function getQuotaUsage(StorageAccount $account): QuotaUsage;
 }

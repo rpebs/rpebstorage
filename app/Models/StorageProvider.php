@@ -7,13 +7,31 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class StorageProvider extends Model
 {
+    public const LABELS = [
+        'google_drive' => 'Google Drive',
+        'dropbox' => 'Dropbox',
+        'onedrive' => 'OneDrive',
+        'telegram' => 'Telegram',
+    ];
+
     protected $fillable = ['name', 'driver_class', 'is_active'];
+
+    // Bind {provider} route params by slug (google_drive), not id.
+    public function getRouteKeyName(): string
+    {
+        return 'name';
+    }
 
     protected function casts(): array
     {
         return [
             'is_active' => 'boolean',
         ];
+    }
+
+    public function label(): string
+    {
+        return self::LABELS[$this->name] ?? $this->name;
     }
 
     public function accounts(): HasMany
