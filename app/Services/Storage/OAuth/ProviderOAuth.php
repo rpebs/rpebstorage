@@ -99,16 +99,38 @@ class ProviderOAuth
      *
      * @throws ConnectionException
      */
-    public function ensureFresh(StorageAccount $account): void
+    public function ensureFresh(StorageAccount $account, bool $force = false): void
     {
         $credentials = $account->credentials;
 
-        if (! is_array($credentials) || ($credentials['expires_at'] ?? 0) > time() + 60) {
+        if (! is_array($credentials)) {
+            return;
+        }
+
+        if (! $force && ($credentials['expires_at'] ?? 0) > time() + 60) {
             return;
         }
 
         $account->credentials = $this->refresh($account->provider->name, $credentials);
         $account->save();
+    }
+
+    /**
+     * True when an exception looks like a revoked/expired token instead of a
+     * transient network or server failure.
+     */
+    public function isAuthError(\Throwable $e): bool
+    {
+        $message = strtolower($e->getMessage());
+
+        return (int) ($e->getCode() ?? 0) === 401
+            || str_contains($message, 'invalid_grant')
+            || str_contains($message, 'invalid_client')
+            || str_contains($message, 'unauthorized_client')
+            || str_contains($message, 'invalid_token')
+            || str_contains($message, 'expired_token')
+            || str_contains($message, '401 unauthorized')
+            || str_contains($message, 'refresh token is invalid');
     }
 
     /**

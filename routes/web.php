@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FileManagerController;
 use App\Http\Controllers\Auth\ProviderOAuthController;
 use App\Http\Controllers\StorageAccountController;
 use App\Http\Controllers\TelegramAuthController;
@@ -10,7 +12,17 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'Dashboard')->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('files', [FileManagerController::class, 'index'])->name('files.index');
+    Route::post('files/folders', [FileManagerController::class, 'storeFolder'])->name('files.folders.store');
+    Route::patch('files/folders/{folder}', [FileManagerController::class, 'updateFolder'])->name('files.folders.update');
+    Route::delete('files/folders/{folder}', [FileManagerController::class, 'destroyFolder'])->name('files.folders.destroy');
+    Route::post('files/upload', [FileManagerController::class, 'upload'])->name('files.upload');
+    Route::get('files/jobs', [FileManagerController::class, 'jobs'])->name('files.jobs');
+    Route::get('files/{file}/download', [FileManagerController::class, 'download'])->name('files.download');
+    Route::patch('files/{file}/move', [FileManagerController::class, 'move'])->name('files.move');
+    Route::delete('files/{file}', [FileManagerController::class, 'destroy'])->name('files.destroy');
 
     Route::get('accounts', [StorageAccountController::class, 'index'])->name('accounts.index');
     Route::patch('accounts/{account}', [StorageAccountController::class, 'update'])->name('accounts.update');
