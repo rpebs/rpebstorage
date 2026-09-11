@@ -17,6 +17,9 @@ class StorageAccountController extends Controller
             ->with('provider')
             ->orderBy('created_at')
             ->get()
+            // Hide Telegram rows whose OTP wizard never finished.
+            ->reject(fn (StorageAccount $account) => $account->meta['connecting'] ?? false)
+            ->values()
             ->map(fn (StorageAccount $account) => [
                 'id' => $account->id,
                 'alias' => $account->alias,

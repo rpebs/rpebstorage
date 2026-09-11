@@ -3,6 +3,7 @@ import { Form, Head } from '@inertiajs/vue3';
 import { redirect as connectRedirect } from '@/actions/App/Http/Controllers/Auth/ProviderOAuthController';
 import { destroy, index, update } from '@/actions/App/Http/Controllers/StorageAccountController';
 import CapacityBar from '@/components/CapacityBar.vue';
+import TelegramConnect from '@/components/TelegramConnect.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -75,10 +76,7 @@ const statusClass: Record<string, string> = {
             <h2 class="text-sm font-medium">Hubungkan provider</h2>
             <div class="flex flex-wrap gap-2">
                 <template v-for="provider in providers" :key="provider.name">
-                    <Button v-if="provider.name === 'telegram'" variant="outline" disabled>
-                        {{ provider.label }}
-                        <span class="text-muted-foreground text-xs">butuh api_id &amp; api_hash</span>
-                    </Button>
+                    <TelegramConnect v-if="provider.name === 'telegram'" />
                     <Button v-else variant="outline" as-child>
                         <a :href="connectRedirect({ provider: provider.name }).url">{{ provider.label }}</a>
                     </Button>
