@@ -28,13 +28,13 @@ class TelegramAuthController extends Controller
 
         $provider = StorageProvider::where('name', 'telegram')->firstOrFail();
 
-        // OTP attempts abandoned halfway leave hidden 'connecting' rows;
-        // clear them (and their session dirs) before creating a fresh one.
+        // Starting a new connect supersedes any half-finished attempt (a failed
+        // bucket creation leaves a hidden 'connecting' row). Clear them all.
         $stale = StorageAccount::where('user_id', $request->user()->id)
             ->where('storage_provider_id', $provider->id)
             ->where('status', AccountStatus::Expired)
-            ->where('created_at', '<', now()->subHour())
-            ->get();
+            ->get()
+            ->filter(fn (StorageAccount $old) => (bool) ($old->meta['connecting'] ?? false));
 
         foreach ($stale as $old) {
             $session = storage_path('app/'.config('rpebs.telegram.session_path').'/'.$old->id.'.madeline');
