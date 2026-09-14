@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { Form, Head } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+import { Form, Head, router } from '@inertiajs/vue3';
 import { redirect as connectRedirect } from '@/actions/App/Http/Controllers/Auth/ProviderOAuthController';
 import {
     destroy,
@@ -36,8 +36,10 @@ import {
     Archive,
     Cloud,
     Database,
+    FolderInput,
     HardDrive,
     Info,
+    Loader2,
     Pencil,
     Plus,
     Send,
@@ -66,6 +68,8 @@ const props = defineProps<{
         quota_total: number | null;
         quota_used: number;
         file_count: number;
+        supports_scan?: boolean;
+        is_scanning?: boolean;
     }>;
     providers: Array<{
         name: string;
@@ -74,6 +78,18 @@ const props = defineProps<{
         credentials_missing: boolean;
     }>;
 }>();
+
+const scanningId = ref<number | null>(null);
+
+function triggerScan(accountId: number) {
+    scanningId.value = accountId;
+    router.post(`/accounts/${accountId}/scan`, {}, {
+        preserveScroll: true,
+        onFinish: () => {
+            scanningId.value = null;
+        },
+    });
+}
 
 const statusLabel: Record<string, string> = {
     active: 'Aktif',
@@ -508,6 +524,53 @@ const groupedProviders = computed(() => {
                         <div
                             class="flex shrink-0 items-center gap-2 self-end lg:self-center"
                         >
+                            <!-- Pindai Berkas Dialog -->
+                            <Dialog v-if="account.status === 'active' && account.supports_scan !== false">
+                                <DialogTrigger as-child>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        class="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                                        :disabled="account.is_scanning || scanningId === account.id"
+                                    >
+                                        <Loader2
+                                            v-if="account.is_scanning || scanningId === account.id"
+                                            class="h-3.5 w-3.5 animate-spin text-teal-600 dark:text-teal-400"
+                                        />
+                                        <FolderInput v-else class="h-3.5 w-3.5" />
+                                        <span>{{
+                                            account.is_scanning || scanningId === account.id
+                                                ? 'Memindai...'
+                                                : 'Pindai berkas'
+                                        }}</span>
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Pindai & impor berkas</DialogTitle>
+                                        <DialogDescription>
+                                            Sistem akan membaca berkas dan folder yang ada di akun <strong>{{ account.alias }}</strong>, lalu menempatkannya ke dalam folder virtual <code>[{{ account.provider_label }} - {{ account.alias }}]</code>.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <div class="rounded-md border border-neutral-200 bg-neutral-50 p-3 text-xs text-neutral-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
+                                        Pemindaian berjalan di latar belakang. Berkas yang sudah ada akan diperbarui tanpa membuat duplikat.
+                                    </div>
+                                    <DialogFooter class="gap-2 sm:gap-0">
+                                        <DialogClose as-child>
+                                            <Button variant="ghost">Batal</Button>
+                                        </DialogClose>
+                                        <DialogClose as-child>
+                                            <Button
+                                                class="bg-teal-600 text-white hover:bg-teal-700 dark:bg-teal-600 dark:hover:bg-teal-500"
+                                                @click="triggerScan(account.id)"
+                                            >
+                                                Mulai Pemindaian
+                                            </Button>
+                                        </DialogClose>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+
                             <!-- Ganti Alias Dialog -->
                             <Dialog>
                                 <DialogTrigger as-child>

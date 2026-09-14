@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import {
     Activity,
@@ -91,6 +91,8 @@ interface DashboardProps {
         provider_name: string;
         provider_label: string;
         is_accessible: boolean;
+        has_thumbnail?: boolean;
+        thumbnail_url?: string | null;
         created_at_human: string;
         created_at: string;
     }>;
@@ -100,6 +102,16 @@ const props = withDefaults(defineProps<DashboardProps>(), {
     providers: () => [],
     recent_files: () => [],
 });
+
+const failedThumbnails = ref<Record<number, boolean>>({});
+
+function onThumbnailError(id: number): void {
+    failedThumbnails.value[id] = true;
+}
+
+function hasValidThumbnail(file: NonNullable<DashboardProps['recent_files']>[number]): boolean {
+    return Boolean(file.has_thumbnail && file.thumbnail_url && !failedThumbnails.value[file.id]);
+}
 
 defineOptions({
     layout: {
@@ -1084,15 +1096,28 @@ function statusText(status?: string) {
                                         <div
                                             class="flex min-w-0 items-center gap-2.5"
                                         >
-                                            <component
-                                                :is="
-                                                    getFileIcon(
-                                                        file.mime_type,
-                                                        file.name,
-                                                    )
-                                                "
-                                                class="size-4 shrink-0 text-teal-600 dark:text-teal-400"
-                                            />
+                                            <template v-if="hasValidThumbnail(file)">
+                                                <img
+                                                    :src="file.thumbnail_url!"
+                                                    :alt="file.name"
+                                                    loading="lazy"
+                                                    class="h-7 w-7 shrink-0 rounded object-cover border border-border/60 bg-muted/40"
+                                                    @error="onThumbnailError(file.id)"
+                                                />
+                                            </template>
+                                            <template v-else>
+                                                <div class="flex h-7 w-7 shrink-0 items-center justify-center">
+                                                    <component
+                                                        :is="
+                                                            getFileIcon(
+                                                                file.mime_type,
+                                                                file.name,
+                                                            )
+                                                        "
+                                                        class="size-4 shrink-0 text-teal-600 dark:text-teal-400"
+                                                    />
+                                                </div>
+                                            </template>
                                             <span
                                                 class="text-foreground max-w-[220px] truncate font-medium"
                                                 :title="file.name"
@@ -1188,15 +1213,28 @@ function statusText(status?: string) {
                         >
                             <div class="flex items-start justify-between gap-2">
                                 <div class="flex min-w-0 items-center gap-2">
-                                    <component
-                                        :is="
-                                            getFileIcon(
-                                                file.mime_type,
-                                                file.name,
-                                            )
-                                        "
-                                        class="size-4 shrink-0 text-teal-600 dark:text-teal-400"
-                                    />
+                                    <template v-if="hasValidThumbnail(file)">
+                                        <img
+                                            :src="file.thumbnail_url!"
+                                            :alt="file.name"
+                                            loading="lazy"
+                                            class="h-7 w-7 shrink-0 rounded object-cover border border-border/60 bg-muted/40"
+                                            @error="onThumbnailError(file.id)"
+                                        />
+                                    </template>
+                                    <template v-else>
+                                        <div class="flex h-7 w-7 shrink-0 items-center justify-center">
+                                            <component
+                                                :is="
+                                                    getFileIcon(
+                                                        file.mime_type,
+                                                        file.name,
+                                                    )
+                                                "
+                                                class="size-4 shrink-0 text-teal-600 dark:text-teal-400"
+                                            />
+                                        </div>
+                                    </template>
                                     <span
                                         class="text-foreground truncate text-sm font-medium"
                                     >

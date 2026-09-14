@@ -11,6 +11,7 @@ use App\Models\StorageAccount;
 use App\Models\VirtualFile;
 use App\Models\VirtualFolder;
 use App\Services\Storage\StorageManager;
+use App\Services\Storage\ThumbnailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -18,7 +19,10 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class FileManagerController extends Controller
 {
-    public function __construct(private StorageManager $manager) {}
+    public function __construct(
+        private StorageManager $manager,
+        private ThumbnailService $thumbnailService,
+    ) {}
 
     public function index(Request $request)
     {
@@ -93,6 +97,8 @@ class FileManagerController extends Controller
                 'account_label' => $f->account ? "{$f->account->alias} ({$f->account->provider->label()})" : '',
                 'accessible' => $f->account?->status === AccountStatus::Active,
                 'updated_at' => $f->updated_at?->toISOString(),
+                'has_thumbnail' => $this->thumbnailService->supports($f),
+                'thumbnail_url' => $this->thumbnailService->supports($f) ? route('files.thumbnail', $f) : null,
             ]),
             'allFolders' => $allFolders->values(),
             'accounts' => $accounts,
@@ -269,6 +275,50 @@ class FileManagerController extends Controller
         return response()->download($temp, $file->name)->deleteFileAfterSend(true);
     }
 
+    public function thumbnail(Request $request, VirtualFile $file): \Symfony\Component\HttpFoundation\Response
+    {
+        abort_unless($file->user_id === $request->user()->id, 404);
+
+        if (! $this->thumbnailService->supports($file)) {
+            abort(404);
+        }
+
+        $path = $this->thumbnailService->getOrGenerateThumbnail($file);
+
+        if (! $path || ! file_exists($path)) {
+            abort(404);
+        }
+
+        $lastModified = filemtime($path) ?: time();
+        $etag = '"' . md5($file->id . '-' . $lastModified) . '"';
+
+        if ($request->header('If-None-Match') === $etag) {
+            return response('', 304, [
+                'ETag' => $etag,
+                'Cache-Control' => 'private, max-age=604800, immutable',
+            ]);
+        }
+
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        $contentType = match ($ext) {
+            'webp' => 'image/webp',
+            'svg' => 'image/svg+xml',
+            'png' => 'image/png',
+            'jpg', 'jpeg' => 'image/jpeg',
+            default => mime_content_type($path) ?: 'application/octet-stream',
+        };
+
+        $response = response()->file($path, [
+            'Content-Type' => $contentType,
+            'ETag' => $etag,
+            'Last-Modified' => gmdate('D, d M Y H:i:s', $lastModified) . ' GMT',
+        ]);
+        $response->setPrivate();
+        $response->setMaxAge(604800);
+
+        return $response;
+    }
+
     public function move(Request $request, VirtualFile $file)
     {
         abort_unless($file->user_id === $request->user()->id, 404);
@@ -306,6 +356,8 @@ class FileManagerController extends Controller
         if (file_exists($merged)) {
             @unlink($merged);
         }
+
+        $this->thumbnailService->deleteThumbnail($file);
 
         $this->manager->driver($account)->delete($account, $file->remote_ref);
 

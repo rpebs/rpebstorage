@@ -4,6 +4,7 @@ namespace App\Contracts;
 
 use App\Models\StorageAccount;
 use App\Values\QuotaUsage;
+use App\Values\RemoteItem;
 use App\Values\UploadResult;
 
 interface StorageDriverInterface
@@ -31,4 +32,11 @@ interface StorageDriverInterface
      * Current total/used quota at the provider, used by the quota sync job.
      */
     public function getQuotaUsage(StorageAccount $account): QuotaUsage;
+
+    /**
+     * List all remote files and folders in the account storage.
+     *
+     * @return iterable<RemoteItem>
+     */
+    public function listFiles(StorageAccount $account): iterable;
 }

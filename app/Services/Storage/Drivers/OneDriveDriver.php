@@ -4,6 +4,7 @@ namespace App\Services\Storage\Drivers;
 
 use App\Models\StorageAccount;
 use App\Values\QuotaUsage;
+use App\Values\RemoteItem;
 use App\Values\UploadResult;
 use Illuminate\Support\Facades\Http;
 
@@ -65,6 +66,50 @@ class OneDriveDriver extends BaseCloudDriver
         $total = isset($quota['total']) ? (int) $quota['total'] : null;
 
         return new QuotaUsage($total, (int) ($quota['used'] ?? 0));
+    }
+
+    public function listFiles(StorageAccount $account): iterable
+    {
+        $token = $this->token($account);
+        $url = self::GRAPH.'/me/drive/root/delta?$select=id,name,size,file,folder,parentReference,deleted';
+
+        while ($url) {
+            $res = Http::withToken($token)->get($url)->throw()->json();
+
+            foreach ($res['value'] ?? [] as $item) {
+                if (isset($item['deleted'])) {
+                    continue;
+                }
+
+                if (isset($item['root']) || ($item['name'] ?? '') === 'root') {
+                    continue;
+                }
+
+                $isFolder = isset($item['folder']);
+                $isFile = isset($item['file']);
+
+                if (! $isFolder && ! $isFile) {
+                    continue;
+                }
+
+                $parentId = $item['parentReference']['id'] ?? null;
+                $parentPath = $item['parentReference']['path'] ?? '';
+                if ($parentPath === '/drive/root:') {
+                    $parentId = null;
+                }
+
+                yield new RemoteItem(
+                    id: (string) $item['id'],
+                    name: (string) ($item['name'] ?? 'Untitled'),
+                    isFolder: $isFolder,
+                    size: isset($item['size']) ? (int) $item['size'] : null,
+                    mimeType: $item['file']['mimeType'] ?? null,
+                    parentId: $parentId,
+                );
+            }
+
+            $url = $res['@odata.nextLink'] ?? null;
+        }
     }
 
     private function sessionUpload(string $token, string $localFilePath, string $fileName, int $size, string $mime): UploadResult

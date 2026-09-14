@@ -5,6 +5,7 @@ namespace Tests;
 use App\Contracts\StorageDriverInterface;
 use App\Models\StorageAccount;
 use App\Values\QuotaUsage;
+use App\Values\RemoteItem;
 use App\Values\UploadResult;
 
 /**
@@ -48,14 +49,23 @@ class FakeDriver implements StorageDriverInterface
         return self::$total === null ? null : max(0, self::$total - self::$used);
     }
 
+    /** @var array<RemoteItem> */
+    public static array $remoteItems = [];
+
     public function getQuotaUsage(StorageAccount $account): QuotaUsage
     {
         return new QuotaUsage(self::$total, self::$used);
     }
 
+    public function listFiles(StorageAccount $account): iterable
+    {
+        return self::$remoteItems;
+    }
+
     public static function reset(): void
     {
         self::$storage = [];
+        self::$remoteItems = [];
         self::$total = null;
         self::$used = 0;
     }

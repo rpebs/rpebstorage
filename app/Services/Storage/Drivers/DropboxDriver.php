@@ -4,6 +4,7 @@ namespace App\Services\Storage\Drivers;
 
 use App\Models\StorageAccount;
 use App\Values\QuotaUsage;
+use App\Values\RemoteItem;
 use App\Values\UploadResult;
 use Illuminate\Support\Facades\Http;
 
@@ -65,6 +66,56 @@ class DropboxDriver extends BaseCloudDriver
         $allocated = $json['allocation']['allocated'] ?? null;
 
         return new QuotaUsage($allocated !== null ? (int) $allocated : null, (int) ($json['used'] ?? 0));
+    }
+
+    public function listFiles(StorageAccount $account): iterable
+    {
+        $token = $this->token($account);
+
+        $res = Http::withToken($token)
+            ->post(self::API.'/files/list_folder', [
+                'path' => '',
+                'recursive' => true,
+                'include_media_info' => false,
+                'include_deleted' => false,
+            ])
+            ->throw()
+            ->json();
+
+        while (true) {
+            foreach ($res['entries'] ?? [] as $entry) {
+                $tag = $entry['.tag'] ?? '';
+                $isFolder = $tag === 'folder';
+
+                if ($tag !== 'file' && $tag !== 'folder') {
+                    continue;
+                }
+
+                $pathDisplay = $entry['path_display'] ?? $entry['path_lower'] ?? '';
+                $remoteRef = $entry['path_lower'] ?? $pathDisplay;
+
+                yield new RemoteItem(
+                    id: (string) $remoteRef,
+                    name: (string) ($entry['name'] ?? basename($pathDisplay)),
+                    isFolder: $isFolder,
+                    size: isset($entry['size']) ? (int) $entry['size'] : null,
+                    mimeType: null,
+                    parentId: null,
+                    remotePath: $pathDisplay,
+                );
+            }
+
+            if (empty($res['has_more']) || empty($res['cursor'])) {
+                break;
+            }
+
+            $res = Http::withToken($token)
+                ->post(self::API.'/files/list_folder/continue', [
+                    'cursor' => $res['cursor'],
+                ])
+                ->throw()
+                ->json();
+        }
     }
 
     private function simpleUpload(string $token, string $localFilePath, string $path): array

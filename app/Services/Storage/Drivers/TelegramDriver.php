@@ -99,4 +99,9 @@ class TelegramDriver implements StorageDriverInterface
 
         return new QuotaUsage(null, $used);
     }
+
+    public function listFiles(StorageAccount $account): iterable
+    {
+        return [];
+    }
 }

@@ -48,6 +48,17 @@ return [
     'temp_disk' => 'local',
     'temp_path' => 'temp',
 
+    /*
+    | Thumbnail cache directory and dimensions.
+    */
+    'thumbnails' => [
+        'disk' => 'local',
+        'path' => 'thumbnails',
+        'max_width' => 320,
+        'max_height' => 320,
+        'quality' => 80,
+    ],
+
     // pickBestAccount: an unlimited account is only used when no quota-limited
     // account has at least this many bytes free.
     'unlimited_fallback_threshold' => 1024 * 1024 * 1024,

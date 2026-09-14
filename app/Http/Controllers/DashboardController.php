@@ -8,11 +8,14 @@ use App\Jobs\SyncStorageQuotaJob;
 use App\Models\FileJob;
 use App\Models\StorageAccount;
 use App\Models\VirtualFile;
+use App\Services\Storage\ThumbnailService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
+    public function __construct(private ThumbnailService $thumbnailService) {}
+
     public function index(Request $request)
     {
         $user = $request->user();
@@ -92,6 +95,8 @@ class DashboardController extends Controller
                 'provider_name' => $file->account?->provider?->name ?? 'unknown',
                 'provider_label' => $file->account?->provider?->label() ?? 'Unknown',
                 'is_accessible' => $file->isAccessible(),
+                'has_thumbnail' => $this->thumbnailService->supports($file),
+                'thumbnail_url' => $this->thumbnailService->supports($file) ? route('files.thumbnail', $file) : null,
                 'created_at_human' => $file->created_at?->diffForHumans(),
                 'created_at' => $file->created_at?->toIso8601String(),
             ]);

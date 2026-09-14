@@ -126,7 +126,6 @@ parameters:
 			count: 1
 			path: app/Console/Commands/TelegramListenCommand.php
 
-
 		-
 			message: '#^Parameter \#1 \$stream of function fclose expects resource, resource\|false given\.$#'
 			identifier: argument.type
@@ -176,8 +175,50 @@ parameters:
 			path: app/Http/Controllers/Auth/ProviderOAuthController.php
 
 		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$alias\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$provider\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:label\(\)\.$#'
 			identifier: method.notFound
+			count: 2
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Cannot call method diffForHumans\(\) on string\.$#'
+			identifier: method.nonObject
 			count: 1
 			path: app/Http/Controllers/DashboardController.php
 
@@ -194,13 +235,31 @@ parameters:
 			path: app/Http/Controllers/DashboardController.php
 
 		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			message: '#^Offset ''connecting'' on string\|null on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\),Illuminate\\Database\\Eloquent\\Collection\<int, Illuminate\\Database\\Eloquent\\Model\>\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
 			count: 1
 			path: app/Http/Controllers/DashboardController.php
 
 		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{id\: int, alias\: string, provider_label\: mixed, quota_total\: int\<0, max\>\|null, quota_used\: int\<0, max\>, nearly_full\: bool\}, Closure\(App\\Models\\StorageAccount\)\: array\{id\: int, alias\: string, provider_label\: mixed, quota_total\: int\<0, max\>\|null, quota_used\: int\<0, max\>, nearly_full\: bool\} given\.$#'
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 2
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{id\: int, alias\: string, provider\: mixed, provider_label\: mixed, status\: mixed, is_active\: false, is_unlimited\: bool, quota_total\: int\<0, max\>\|null, quota_used\: int\<0, max\>, remaining_quota\: int\|null, used_percent\: float\|null, nearly_full\: bool, file_count\: int\<0, max\>, quota_synced_at_human\: mixed\}, Closure\(App\\Models\\StorageAccount\)\: array\{id\: int, alias\: string, provider\: mixed, provider_label\: mixed, status\: mixed, is_active\: false, is_unlimited\: bool, quota_total\: int\<0, max\>\|null, quota_used\: int\<0, max\>, remaining_quota\: int\|null, used_percent\: float\|null, nearly_full\: bool, file_count\: int\<0, max\>, quota_synced_at_human\: mixed\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{id\: int, name\: string, size\: int\<0, max\>, mime_type\: string\|null, folder_id\: int\<0, max\>\|null, folder_name\: mixed, account_alias\: mixed, account_status\: mixed, provider_name\: mixed, provider_label\: mixed, is_accessible\: bool, has_thumbnail\: bool, thumbnail_url\: string\|null, created_at_human\: string\|null, created_at\: string\|null\}, Closure\(App\\Models\\VirtualFile\)\: array\{id\: int, name\: string, size\: int\<0, max\>, mime_type\: string\|null, folder_id\: int\<0, max\>\|null, folder_name\: mixed, account_alias\: mixed, account_status\: mixed, provider_name\: mixed, provider_label\: mixed, is_accessible\: bool, has_thumbnail\: bool, thumbnail_url\: string\|null, created_at_human\: string\|null, created_at\: string\|null\} given\.$#'
 			identifier: argument.type
 			count: 1
 			path: app/Http/Controllers/DashboardController.php
@@ -208,18 +267,66 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:filter\(\) expects \(callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: bool\)\|null, Closure\(App\\Models\\StorageAccount\)\: bool given\.$#'
 			identifier: argument.type
+			count: 2
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:filter\(\) expects \(callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: bool\)\|null, Closure\(App\\Models\\StorageAccount\)\: false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:reject\(\) expects bool\|\(callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: bool\)\|Illuminate\\Database\\Eloquent\\Model, Closure\(App\\Models\\StorageAccount\)\: false given\.$#'
+			identifier: argument.type
 			count: 1
 			path: app/Http/Controllers/DashboardController.php
 
 		-
 			message: '#^Parameter \#1 \$key of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:contains\(\) expects \(callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: bool\)\|Illuminate\\Database\\Eloquent\\Model\|int\|string, Closure\(App\\Models\\StorageAccount\)\: bool given\.$#'
 			identifier: argument.type
+			count: 3
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\),Illuminate\\Database\\Eloquent\\Collection\<int, Illuminate\\Database\\Eloquent\\Model\>\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
 			count: 1
 			path: app/Http/Controllers/DashboardController.php
 
 		-
 			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: method.unresolvableReturnType
+			count: 2
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<\(int\|string\),array\<string, mixed\>\>\:\:values\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\AccountStatus\:\:Active will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 2
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>alias" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>value" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
 			count: 1
 			path: app/Http/Controllers/DashboardController.php
 
@@ -356,9 +463,75 @@ parameters:
 			path: app/Http/Controllers/FileManagerController.php
 
 		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$alias\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/LogController.php
+
+		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
 			identifier: property.notFound
-			count: 2
+			count: 1
+			path: app/Http/Controllers/LogController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$provider\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/LogController.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Http/Controllers/LogController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\LogController\:\:clear\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/LogController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\LogController\:\:destroy\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/LogController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\LogController\:\:index\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/LogController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,App\\Models\\FileJob\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/LogController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,App\\Models\\FileJob\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/LogController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/LogController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\MegaAuthController\:\:connect\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/MegaAuthController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 3
 			path: app/Http/Controllers/StorageAccountController.php
 
 		-
@@ -386,6 +559,12 @@ parameters:
 			path: app/Http/Controllers/StorageAccountController.php
 
 		-
+			message: '#^Method App\\Http\\Controllers\\StorageAccountController\:\:scan\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/StorageAccountController.php
+
+		-
 			message: '#^Method App\\Http\\Controllers\\StorageAccountController\:\:update\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
@@ -404,7 +583,7 @@ parameters:
 			path: app/Http/Controllers/StorageAccountController.php
 
 		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{id\: int, alias\: string, provider\: mixed, provider_label\: mixed, status\: mixed, quota_total\: int\<0, max\>\|null, quota_used\: int\<0, max\>, file_count\: int\<0, max\>\}, Closure\(App\\Models\\StorageAccount\)\: array\{id\: int, alias\: string, provider\: mixed, provider_label\: mixed, status\: mixed, quota_total\: int\<0, max\>\|null, quota_used\: int\<0, max\>, file_count\: int\<0, max\>\} given\.$#'
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{id\: int, alias\: string, provider\: mixed, provider_label\: mixed, status\: mixed, quota_total\: int\<0, max\>\|null, quota_used\: int\<0, max\>, file_count\: int\<0, max\>, supports_scan\: bool, is_scanning\: bool\}, Closure\(App\\Models\\StorageAccount\)\: array\{id\: int, alias\: string, provider\: mixed, provider_label\: mixed, status\: mixed, quota_total\: int\<0, max\>\|null, quota_used\: int\<0, max\>, file_count\: int\<0, max\>, supports_scan\: bool, is_scanning\: bool\} given\.$#'
 			identifier: argument.type
 			count: 1
 			path: app/Http/Controllers/StorageAccountController.php
@@ -418,6 +597,18 @@ parameters:
 		-
 			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/StorageAccountController.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\AccountStatus\:\:Active will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Http/Controllers/StorageAccountController.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
 			count: 1
 			path: app/Http/Controllers/StorageAccountController.php
 
@@ -468,6 +659,24 @@ parameters:
 			identifier: property.notFound
 			count: 1
 			path: app/Jobs/RefreshProviderTokenJob.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:label\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Jobs/ScanStorageAccountJob.php
+
+		-
+			message: '#^Method App\\Jobs\\ScanStorageAccountJob\:\:resolvePathFolder\(\) has parameter \$folderMap with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Jobs/ScanStorageAccountJob.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between non\-falsy\-string and '''' will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Jobs/ScanStorageAccountJob.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
@@ -668,6 +877,78 @@ parameters:
 			path: app/Services/Storage/Drivers/GoogleDriveDriver.php
 
 		-
+			message: '#^Call to an undefined method Mega\\Entity\\Node\:\:getParentHandle\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Services/Storage/Drivers/MegaDriver.php
+
+		-
+			message: '#^Call to an undefined method Mega\\Entity\\Node\:\:getSize\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Services/Storage/Drivers/MegaDriver.php
+
+		-
+			message: '#^Call to function is_array\(\) with string\|null will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: app/Services/Storage/Drivers/MegaDriver.php
+
+		-
+			message: '#^Cannot assign offset ''root_handle'' to string\|null\.$#'
+			identifier: offsetAssign.dimType
+			count: 1
+			path: app/Services/Storage/Drivers/MegaDriver.php
+
+		-
+			message: '#^Offset ''root_handle'' on string\|null on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: app/Services/Storage/Drivers/MegaDriver.php
+
+		-
+			message: '#^Offset ''session_id'' does not exist on string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: app/Services/Storage/Drivers/MegaDriver.php
+
+		-
+			message: '#^Offset ''session_id'' on string\|null in empty\(\) does not exist\.$#'
+			identifier: empty.offset
+			count: 1
+			path: app/Services/Storage/Drivers/MegaDriver.php
+
+		-
+			message: '#^Parameter \#2 \$size of class App\\Values\\UploadResult constructor expects int, int\<0, max\>\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Storage/Drivers/MegaDriver.php
+
+		-
+			message: '#^Parameter \#4 \$size of method Mega\\Client\:\:uploadFile\(\) expects int\|null, int\<0, max\>\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Storage/Drivers/MegaDriver.php
+
+		-
+			message: '#^Property App\\Models\\StorageAccount\:\:\$credentials \(string\|null\) does not accept array\<string, string\>\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Services/Storage/Drivers/MegaDriver.php
+
+		-
+			message: '#^Result of \|\| is always true\.$#'
+			identifier: booleanOr.alwaysTrue
+			count: 2
+			path: app/Services/Storage/Drivers/MegaDriver.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Services/Storage/Drivers/MegaDriver.php
+
+		-
 			message: '#^Parameter \#1 \$content of method Illuminate\\Http\\Client\\PendingRequest\<false\>\:\:withBody\(\) expects Psr\\Http\\Message\\StreamInterface\|string, resource\|false given\.$#'
 			identifier: argument.type
 			count: 1
@@ -718,6 +999,12 @@ parameters:
 		-
 			message: '#^Expression on left side of \?\? is not nullable\.$#'
 			identifier: nullCoalesce.expr
+			count: 1
+			path: app/Services/Storage/OAuth/ProviderOAuth.php
+
+		-
+			message: '#^If condition is always true\.$#'
+			identifier: if.alwaysTrue
 			count: 1
 			path: app/Services/Storage/OAuth/ProviderOAuth.php
 
@@ -774,6 +1061,30 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: app/Services/Storage/StorageManager.php
+
+		-
+			message: '#^Property App\\Services\\Storage\\ThumbnailService\:\:\$manager is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Services/Storage/ThumbnailService.php
+
+		-
+			message: '#^Result of \|\| is always true\.$#'
+			identifier: booleanOr.alwaysTrue
+			count: 1
+			path: app/Services/Storage/ThumbnailService.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\AccountStatus\:\:Active will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Services/Storage/ThumbnailService.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Services/Storage/ThumbnailService.php
 
 		-
 			message: '#^Method App\\Services\\Telegram\\TelegramRpc\:\:call\(\) has parameter \$payload with no value type specified in iterable type array\.$#'

@@ -23,12 +23,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('files/upload', [FileManagerController::class, 'upload'])->name('files.upload');
     Route::get('files/jobs', [FileManagerController::class, 'jobs'])->name('files.jobs');
     Route::get('files/{file}/download', [FileManagerController::class, 'download'])->name('files.download');
+    Route::get('files/{file}/thumbnail', [FileManagerController::class, 'thumbnail'])->name('files.thumbnail');
     Route::patch('files/{file}/move', [FileManagerController::class, 'move'])->name('files.move');
     Route::delete('files/{file}', [FileManagerController::class, 'destroy'])->name('files.destroy');
 
     Route::get('accounts', [StorageAccountController::class, 'index'])->name('accounts.index');
     Route::patch('accounts/{account}', [StorageAccountController::class, 'update'])->name('accounts.update');
     Route::delete('accounts/{account}', [StorageAccountController::class, 'destroy'])->name('accounts.destroy');
+    Route::post('accounts/{account}/scan', [StorageAccountController::class, 'scan'])->name('accounts.scan');
     Route::get('accounts/connect/{provider}', [ProviderOAuthController::class, 'redirect'])->name('accounts.connect');
     Route::get('accounts/callback/{provider}', [ProviderOAuthController::class, 'callback'])->name('accounts.callback');
 

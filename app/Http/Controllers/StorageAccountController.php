@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Enums\AccountStatus;
+use App\Enums\JobStatus;
+use App\Jobs\ScanStorageAccountJob;
+use App\Models\FileJob;
 use App\Models\StorageAccount;
 use App\Models\StorageProvider;
 use App\Services\Storage\OAuth\ProviderOAuth;
@@ -15,6 +18,12 @@ class StorageAccountController extends Controller
 {
     public function index(Request $request)
     {
+        $activeScanAccounts = FileJob::where('user_id', $request->user()->id)
+            ->where('type', 'scan')
+            ->whereIn('status', [JobStatus::Pending->value, JobStatus::Processing->value])
+            ->pluck('storage_account_id')
+            ->all();
+
         $accounts = $request->user()->storageAccounts()
             ->where('status', '!=', AccountStatus::Disconnected)
             ->with('provider')
@@ -32,6 +41,8 @@ class StorageAccountController extends Controller
                 'quota_total' => $account->quota_total,
                 'quota_used' => $account->quota_used,
                 'file_count' => $account->files()->count(),
+                'supports_scan' => $account->provider->name !== 'telegram',
+                'is_scanning' => in_array($account->id, $activeScanAccounts, true),
             ]);
 
         $providers = StorageProvider::where('is_active', true)->orderBy('id')->get()
@@ -93,6 +104,57 @@ class StorageAccountController extends Controller
         return $this->toast([
             'type' => 'success',
             'message' => "Akun {$account->alias} diputuskan. File yang tersimpan di akun ini tidak bisa diakses lagi.",
+        ]);
+    }
+
+    public function scan(Request $request, StorageAccount $account)
+    {
+        abort_unless($account->user_id === $request->user()->id, 404);
+
+        if ($account->status !== AccountStatus::Active) {
+            return $this->toast([
+                'type' => 'error',
+                'message' => 'Hanya akun aktif yang dapat dipindai.',
+            ]);
+        }
+
+        if ($account->provider->name === 'telegram') {
+            return $this->toast([
+                'type' => 'error',
+                'message' => 'Provider Telegram tidak mendukung pemindaian berkas luar.',
+            ]);
+        }
+
+        $existing = FileJob::where('user_id', $request->user()->id)
+            ->where('storage_account_id', $account->id)
+            ->where('type', 'scan')
+            ->whereIn('status', [JobStatus::Pending->value, JobStatus::Processing->value])
+            ->first();
+
+        if ($existing) {
+            return $this->toast([
+                'type' => 'info',
+                'message' => 'Pemindaian untuk akun ini sedang berjalan.',
+            ]);
+        }
+
+        $job = FileJob::create([
+            'user_id' => $account->user_id,
+            'type' => 'scan',
+            'virtual_folder_id' => null,
+            'storage_account_id' => $account->id,
+            'original_name' => "Pindai {$account->alias}",
+            'size' => 0,
+            'mime_type' => null,
+            'status' => JobStatus::Pending,
+            'progress' => 0,
+        ]);
+
+        ScanStorageAccountJob::dispatch($account->id, $job->id);
+
+        return $this->toast([
+            'type' => 'success',
+            'message' => "Pemindaian berkas {$account->alias} dimulai di latar belakang.",
         ]);
     }
 }

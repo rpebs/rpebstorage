@@ -6,6 +6,7 @@ use App\Contracts\StorageDriverInterface;
 use App\Models\StorageAccount;
 use App\Services\Storage\StorageManager;
 use App\Values\QuotaUsage;
+use App\Values\RemoteItem;
 use App\Values\UploadResult;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Discovery\Psr18ClientDiscovery;
@@ -105,6 +106,44 @@ class MegaDriver implements StorageDriverInterface
         $used = isset($response['cstrg']) ? (int) $response['cstrg'] : 0;
 
         return new QuotaUsage($total, $used);
+    }
+
+    public function listFiles(StorageAccount $account): iterable
+    {
+        $client = $this->client($account);
+        $rootHandle = $account->credentials['root_handle'] ?? $this->resolveRootHandle($account);
+        $nodes = $client->listNodes();
+
+        foreach ($nodes as $node) {
+            $type = $node->getType();
+            $handle = $node->getHandle();
+
+            if ($handle === $rootHandle) {
+                continue;
+            }
+
+            if ($type === Node::TYPE_FOLDER) {
+                $parentHandle = $node->getParentHandle();
+                yield new RemoteItem(
+                    id: $handle,
+                    name: $node->getName(),
+                    isFolder: true,
+                    parentId: $parentHandle === $rootHandle ? null : $parentHandle,
+                );
+            } elseif ($type === Node::TYPE_FILE) {
+                $parentHandle = $node->getParentHandle();
+                $remoteRef = $handle.'|'.$node->getEncryptedKey();
+
+                yield new RemoteItem(
+                    id: $remoteRef,
+                    name: $node->getName(),
+                    isFolder: false,
+                    size: $node->getSize(),
+                    mimeType: null,
+                    parentId: $parentHandle === $rootHandle ? null : $parentHandle,
+                );
+            }
+        }
     }
 
     public function resolveRootHandle(StorageAccount $account): string

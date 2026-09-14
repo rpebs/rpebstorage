@@ -76,6 +76,8 @@ interface FileItem {
     account_label: string;
     accessible: boolean;
     updated_at?: string | null;
+    has_thumbnail?: boolean;
+    thumbnail_url?: string | null;
 }
 
 const props = defineProps<{
@@ -126,6 +128,16 @@ const isDragging = ref(false);
 const dragDepth = ref(0);
 const targetAccountId = ref<string>('auto');
 const fileInput = ref<HTMLInputElement | null>(null);
+
+const failedThumbnails = ref<Record<number, boolean>>({});
+
+function onThumbnailError(id: number): void {
+    failedThumbnails.value[id] = true;
+}
+
+function hasValidThumbnail(file: FileItem): boolean {
+    return Boolean(file.has_thumbnail && file.thumbnail_url && !failedThumbnails.value[file.id]);
+}
 
 const {
     items,
@@ -1139,21 +1151,34 @@ const searchEmpty = computed(
                                     <div
                                         class="flex min-w-0 items-center gap-2.5"
                                     >
-                                        <component
-                                            :is="
-                                                getFileInfo(
-                                                    file.name,
-                                                    file.mime_type,
-                                                ).icon
-                                            "
-                                            class="h-4 w-4 shrink-0"
-                                            :class="
-                                                getFileInfo(
-                                                    file.name,
-                                                    file.mime_type,
-                                                ).iconClass
-                                            "
-                                        />
+                                        <template v-if="hasValidThumbnail(file)">
+                                            <img
+                                                :src="file.thumbnail_url!"
+                                                :alt="file.name"
+                                                loading="lazy"
+                                                class="h-7 w-7 shrink-0 rounded object-cover border border-border/60 bg-muted/40"
+                                                @error="onThumbnailError(file.id)"
+                                            />
+                                        </template>
+                                        <template v-else>
+                                            <div class="flex h-7 w-7 shrink-0 items-center justify-center">
+                                                <component
+                                                    :is="
+                                                        getFileInfo(
+                                                            file.name,
+                                                            file.mime_type,
+                                                        ).icon
+                                                    "
+                                                    class="h-4 w-4 shrink-0"
+                                                    :class="
+                                                        getFileInfo(
+                                                            file.name,
+                                                            file.mime_type,
+                                                        ).iconClass
+                                                    "
+                                                />
+                                            </div>
+                                        </template>
                                         <span
                                             class="text-foreground truncate font-medium"
                                             :title="file.name"
@@ -1342,24 +1367,35 @@ const searchEmpty = computed(
                         >
                             <!-- Visual file type preview box -->
                             <div
-                                class="bg-muted/40 group-hover:bg-muted/60 relative flex h-24 w-full flex-col items-center justify-center rounded-md transition-colors"
+                                class="bg-muted/40 group-hover:bg-muted/60 relative flex h-24 w-full flex-col items-center justify-center overflow-hidden rounded-md transition-colors"
                             >
-                                <component
-                                    :is="
-                                        getFileInfo(file.name, file.mime_type)
-                                            .icon
-                                    "
-                                    class="h-8 w-8"
-                                    :class="
-                                        getFileInfo(file.name, file.mime_type)
-                                            .iconClass
-                                    "
-                                />
-                                <span
-                                    class="text-muted-foreground mt-1 text-[10px] font-medium uppercase"
-                                >
-                                    {{ file.name.split('.').pop() || 'FILE' }}
-                                </span>
+                                <template v-if="hasValidThumbnail(file)">
+                                    <img
+                                        :src="file.thumbnail_url!"
+                                        :alt="file.name"
+                                        loading="lazy"
+                                        class="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                                        @error="onThumbnailError(file.id)"
+                                    />
+                                </template>
+                                <template v-else>
+                                    <component
+                                        :is="
+                                            getFileInfo(file.name, file.mime_type)
+                                                .icon
+                                        "
+                                        class="h-8 w-8"
+                                        :class="
+                                            getFileInfo(file.name, file.mime_type)
+                                                .iconClass
+                                        "
+                                    />
+                                    <span
+                                        class="text-muted-foreground mt-1 text-[10px] font-medium uppercase"
+                                    >
+                                        {{ file.name.split('.').pop() || 'FILE' }}
+                                    </span>
+                                </template>
 
                                 <!-- Action trigger button -->
                                 <div class="absolute top-1 right-1">
@@ -1368,7 +1404,7 @@ const searchEmpty = computed(
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                class="text-muted-foreground hover:text-foreground h-6 w-6"
+                                                class="text-muted-foreground hover:text-foreground h-6 w-6 rounded bg-background/80 backdrop-blur-xs border border-border/30 hover:bg-background"
                                                 :aria-label="`Menu aksi ${file.name}`"
                                             >
                                                 <MoreVertical

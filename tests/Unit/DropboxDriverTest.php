@@ -118,7 +118,7 @@ class DropboxDriverTest extends TestCase
             ], 200),
         ]);
 
-        $oauth = new ProviderOAuth();
+        $oauth = new ProviderOAuth;
         $email = $oauth->fetchEmail('dropbox', 'fake-token');
 
         $this->assertSame('user@dropbox.local', $email);
