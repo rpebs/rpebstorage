@@ -40,7 +40,7 @@ class DropboxDriver extends BaseCloudDriver
         Http::withToken($this->token($account))
             ->withHeaders(['Dropbox-API-Arg' => json_encode(['path' => $remoteRef])])
             ->sink($dest)
-            ->post(self::CONTENT.'/files/download')
+            ->send('POST', self::CONTENT.'/files/download')
             ->throw();
 
         return $dest;
@@ -58,7 +58,7 @@ class DropboxDriver extends BaseCloudDriver
     public function getQuotaUsage(StorageAccount $account): QuotaUsage
     {
         $json = Http::withToken($this->token($account))
-            ->post(self::API.'/users/get_space_usage')
+            ->send('POST', self::API.'/users/get_space_usage')
             ->throw()
             ->json();
 
@@ -121,7 +121,9 @@ class DropboxDriver extends BaseCloudDriver
                     'cursor' => ['session_id' => $sessionId, 'offset' => $size],
                     'commit' => ['path' => $path, 'mode' => 'overwrite'],
                 ]),
+                'Content-Type' => 'application/octet-stream',
             ])
+            ->withBody('', 'application/octet-stream')
             ->post(self::CONTENT.'/files/upload_session/finish')
             ->throw()
             ->json();

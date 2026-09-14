@@ -5,6 +5,7 @@ import {
     FolderGit2,
     FolderOpen,
     HardDrive,
+    History,
     LayoutGrid,
 } from '@lucide/vue';
 import AppLogo from '@/components/AppLogo.vue';
@@ -39,6 +40,11 @@ const mainNavItems: NavItem[] = [
         title: 'Akun Storage',
         href: accountsIndex(),
         icon: HardDrive,
+    },
+    {
+        title: 'Log Aktivitas',
+        href: '/logs',
+        icon: History,
     },
 ];
 

@@ -17,3 +17,16 @@ export function formatBytes(
 
     return `${value.toFixed(unit === 0 ? 0 : precision)} ${units[unit]}`;
 }
+
+export function formatDate(dateStr: string | null | undefined): string {
+    if (!dateStr) return '-';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '-';
+    return date.toLocaleString('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+}

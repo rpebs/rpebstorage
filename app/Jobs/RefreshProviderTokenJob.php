@@ -22,7 +22,7 @@ class RefreshProviderTokenJob implements ShouldQueue
     public function handle(ProviderOAuth $oauth): void
     {
         StorageAccount::where('status', AccountStatus::Active)
-            ->whereHas('provider', fn ($query) => $query->where('name', '!=', 'telegram'))
+            ->whereHas('provider', fn ($query) => $query->whereNotIn('name', ['telegram', 'mega']))
             ->with('provider')
             ->chunkById(50, function ($accounts) use ($oauth) {
                 foreach ($accounts as $account) {

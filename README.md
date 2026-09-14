@@ -30,22 +30,25 @@ Semua variabel di bawah ada di `.env` (template di `.env.example`). Setelah meng
 Pastikan `APP_URL` sudah sesuai sebelum mendaftarkan redirect URI di masing-masing portal. Dev default: `APP_URL=http://127.0.0.1:8000`.
 
 ### Google Drive (`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`)
+
 1. https://console.cloud.google.com/ -> buat project (mis. "rpebstorage").
 2. **APIs & Services -> Library** -> enable **Google Drive API**.
 3. **APIs & Services -> OAuth consent screen** -> External -> isi app name + email -> scopes: `drive` (dan `openid`, `email`, `profile` otomatis). Tambahkan akun kamu di **Test users** selagi status Testing.
 4. **APIs & Services -> Credentials -> Create Credentials -> OAuth client ID** -> type **Web application**.
-   - Authorized JavaScript origins: `http://127.0.0.1:8000` (opsional).
-   - **Authorized redirect URIs**: `http://127.0.0.1:8000/accounts/callback/google_drive`
-   - Production: tambahkan juga `https://domainmu/accounts/callback/google_drive`.
+    - Authorized JavaScript origins: `http://127.0.0.1:8000` (opsional).
+    - **Authorized redirect URIs**: `http://127.0.0.1:8000/accounts/callback/google_drive`
+    - Production: tambahkan juga `https://domainmu/accounts/callback/google_drive`.
 5. Salin Client ID + Client Secret ke `.env`.
 
 ### Dropbox (`DROPBOX_CLIENT_ID` / `DROPBOX_CLIENT_SECRET`)
+
 1. https://www.dropbox.com/developers/apps -> **Create app** -> **Dropbox API** -> scope **Full Dropbox** (atau App folder).
 2. Di halaman app: **OAuth2** -> **Add redirect URI**: `http://127.0.0.1:8000/accounts/callback/dropbox` (dan versi production).
 3. **Grant type**: Authorization code (dengan refresh token). Sistem sudah memakai `token_access_type=offline`, jadi tidak perlu diubah manual.
 4. Salin **App key** -> `DROPBOX_CLIENT_ID`, **App secret** -> `DROPBOX_CLIENT_SECRET`.
 
 ### OneDrive / Microsoft (`MICROSOFT_CLIENT_ID` / `MICROSOFT_CLIENT_SECRET`)
+
 1. https://entra.microsoft.com/ (atau portal.azure.com) -> **App registrations -> New registration**.
 2. Supported account types: "Accounts in any organizational directory and personal Microsoft accounts" (perlu buat akun personal OneDrive).
 3. **Redirect URI**: platform **Web**, `http://127.0.0.1:8000/accounts/callback/onedrive` (+ production).
@@ -54,10 +57,17 @@ Pastikan `APP_URL` sudah sesuai sebelum mendaftarkan redirect URI di masing-masi
 6. `MICROSOFT_CLIENT_ID` = Application (client) ID, `MICROSOFT_CLIENT_SECRET` = client secret.
 
 ### Telegram (`TELEGRAM_API_ID` / `TELEGRAM_API_HASH`)
+
 1. Login https://my.telegram.org/ dengan nomor Telegram (pakai kode login, bukan OTP upload).
 2. **API development tools** -> isi app title/short name -> Create.
 3. Salin `Api_id` -> `TELEGRAM_API_ID`, `Api_hash` -> `TELEGRAM_API_HASH`.
 4. Perlu daemon Telegram jalan (`composer telegram`), lihat bagian Telegram di bawah.
+
+### MEGA (mega.nz)
+
+1. Tidak memerlukan pendaftaran aplikasi OAuth pihak ketiga atau pengaturan variabel di `.env`.
+2. Hubungkan langsung dari halaman **Akun Storage** dengan memasukkan Email & Kata Sandi akun MEGA Anda.
+3. Aplikasi melakukan _key derivation_ dan autentikasi sesi terenkripsi langsung ke API resmi MEGA (`https://g.api.mega.co.nz/cs`). Kredensial sesi disimpan terenkripsi di database.
 
 ### Ringkas variabel `.env`
 

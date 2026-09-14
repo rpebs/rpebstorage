@@ -34,6 +34,9 @@ export function useUploader() {
         folderId: number | null,
         accountId: number | null,
     ): void {
+        // Clear finished items so past uploads do not linger
+        items.value = items.value.filter((i) => i.status === 'uploading');
+
         for (const file of files) {
             const item: UploadItem = {
                 id: `${file.name}-${file.size}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -145,6 +148,14 @@ export function useUploader() {
         }
     }
 
+    function clear(): void {
+        items.value = [];
+    }
+
+    function dismissItem(id: string): void {
+        items.value = items.value.filter((i) => i.id !== id);
+    }
+
     onUnmounted(stopPolling);
 
     return {
@@ -152,6 +163,8 @@ export function useUploader() {
         serverJobs,
         uploadingCount,
         add,
+        clear,
+        dismissItem,
         startPolling,
         stopPolling,
     };

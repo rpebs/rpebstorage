@@ -3,6 +3,8 @@
 use App\Http\Controllers\Auth\ProviderOAuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FileManagerController;
+use App\Http\Controllers\LogController;
+use App\Http\Controllers\MegaAuthController;
 use App\Http\Controllers\StorageAccountController;
 use App\Http\Controllers\TelegramAuthController;
 use Illuminate\Support\Facades\Route;
@@ -30,8 +32,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('accounts/connect/{provider}', [ProviderOAuthController::class, 'redirect'])->name('accounts.connect');
     Route::get('accounts/callback/{provider}', [ProviderOAuthController::class, 'callback'])->name('accounts.callback');
 
+    Route::get('logs', [LogController::class, 'index'])->name('logs.index');
+    Route::delete('logs', [LogController::class, 'clear'])->name('logs.clear');
+    Route::delete('logs/{job}', [LogController::class, 'destroy'])->name('logs.destroy');
+
     Route::post('accounts/telegram/start', [TelegramAuthController::class, 'start'])->name('accounts.telegram.start');
     Route::post('accounts/telegram/verify', [TelegramAuthController::class, 'verify'])->name('accounts.telegram.verify');
+    Route::post('accounts/mega/connect', [MegaAuthController::class, 'connect'])->name('accounts.mega.connect');
 });
 
 require __DIR__.'/settings.php';

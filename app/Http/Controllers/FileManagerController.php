@@ -78,7 +78,12 @@ class FileManagerController extends Controller
         return Inertia::render('files/index', [
             'folder' => $folder?->only(['id', 'name', 'parent_id']),
             'breadcrumb' => $breadcrumb,
-            'folders' => $folders->map(fn (VirtualFolder $f) => $f->only(['id', 'name', 'parent_id'])),
+            'folders' => $folders->map(fn (VirtualFolder $f) => [
+                'id' => $f->id,
+                'name' => $f->name,
+                'parent_id' => $f->parent_id,
+                'updated_at' => $f->updated_at?->toISOString(),
+            ]),
             'files' => $files->map(fn (VirtualFile $f) => [
                 'id' => $f->id,
                 'name' => $f->name,
@@ -87,6 +92,7 @@ class FileManagerController extends Controller
                 'is_chunked' => $f->is_chunked,
                 'account_label' => $f->account ? "{$f->account->alias} ({$f->account->provider->label()})" : '',
                 'accessible' => $f->account?->status === AccountStatus::Active,
+                'updated_at' => $f->updated_at?->toISOString(),
             ]),
             'allFolders' => $allFolders->values(),
             'accounts' => $accounts,
@@ -210,10 +216,7 @@ class FileManagerController extends Controller
     public function jobs(Request $request)
     {
         $jobs = FileJob::where('user_id', $request->user()->id)
-            ->where(function ($query) {
-                $query->whereIn('status', [JobStatus::Pending->value, JobStatus::Processing->value])
-                    ->orWhere('updated_at', '>=', now()->subMinutes(10));
-            })
+            ->whereIn('status', [JobStatus::Pending->value, JobStatus::Processing->value])
             ->latest()
             ->limit(20)
             ->get()

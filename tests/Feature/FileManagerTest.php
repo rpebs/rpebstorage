@@ -237,13 +237,24 @@ class FileManagerTest extends TestCase
         $this->get("/files/{$file->id}/download")->assertInertiaFlash('toast');
     }
 
-    public function test_jobs_endpoint_reports_recent_jobs(): void
+    public function test_jobs_endpoint_only_reports_active_jobs_and_not_completed_ones(): void
     {
-        $this->uploadViaJob();
+        // Completed job should not be reported in files/jobs
+        $this->uploadViaJob(['original_name' => 'completed.txt']);
+
+        // In-flight job should be reported
+        FileJob::create([
+            'user_id' => $this->user->id,
+            'type' => 'upload',
+            'original_name' => 'active.txt',
+            'size' => 123,
+            'mime_type' => 'text/plain',
+            'status' => JobStatus::Processing,
+        ]);
 
         $response = $this->getJson('/files/jobs');
         $response->assertOk()->assertJsonCount(1, 'jobs');
-        $this->assertSame('test.txt', $response->json('jobs.0.name'));
+        $this->assertSame('active.txt', $response->json('jobs.0.name'));
     }
 
     public function test_other_users_files_are_inaccessible(): void

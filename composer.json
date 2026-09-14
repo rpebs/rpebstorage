@@ -11,6 +11,7 @@
     "require": {
         "php": "^8.3",
         "danog/madelineproto": "^8.7",
+        "enricodias/mega": "dev-main",
         "inertiajs/inertia-laravel": "^3.0",
         "laravel/chisel": "^0.1.0",
         "laravel/fortify": "^1.37.2",

@@ -16,6 +16,25 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 
+const props = withDefaults(
+    defineProps<{
+        label?: string;
+        variant?:
+            | 'default'
+            | 'destructive'
+            | 'outline'
+            | 'secondary'
+            | 'ghost'
+            | 'link';
+        size?: 'default' | 'sm' | 'lg' | 'icon';
+    }>(),
+    {
+        label: 'Telegram',
+        variant: 'outline',
+        size: 'default',
+    },
+);
+
 const open = ref(false);
 const step = ref<'phone' | 'code'>('phone');
 const phone = ref('');
@@ -83,7 +102,11 @@ function reset() {
 <template>
     <Dialog v-model:open="open">
         <DialogTrigger as-child>
-            <Button variant="outline" @click="reset">Telegram</Button>
+            <slot :open="open" :reset="reset">
+                <Button :variant="variant" :size="size" @click="reset">
+                    {{ label }}
+                </Button>
+            </slot>
         </DialogTrigger>
         <DialogContent>
             <DialogHeader>

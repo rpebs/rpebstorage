@@ -38,8 +38,8 @@ class StorageAccountController extends Controller
             ->map(fn (StorageProvider $provider) => [
                 'name' => $provider->name,
                 'label' => $provider->label(),
-                'connectable' => $provider->name === 'telegram' || ProviderOAuth::supported($provider->name),
-                'credentials_missing' => $provider->name !== 'telegram' && ! ProviderOAuth::supported($provider->name),
+                'connectable' => in_array($provider->name, ['telegram', 'mega'], true) || ProviderOAuth::supported($provider->name),
+                'credentials_missing' => ! in_array($provider->name, ['telegram', 'mega'], true) && ! ProviderOAuth::supported($provider->name),
             ]);
 
         return Inertia::render('accounts/index', [

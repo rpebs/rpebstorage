@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\StorageProvider;
 use App\Services\Storage\Drivers\DropboxDriver;
 use App\Services\Storage\Drivers\GoogleDriveDriver;
+use App\Services\Storage\Drivers\MegaDriver;
 use App\Services\Storage\Drivers\OneDriveDriver;
 use App\Services\Storage\Drivers\TelegramDriver;
 use Illuminate\Database\Seeder;
@@ -18,6 +19,7 @@ class StorageProviderSeeder extends Seeder
             ['name' => 'dropbox', 'driver_class' => DropboxDriver::class],
             ['name' => 'onedrive', 'driver_class' => OneDriveDriver::class],
             ['name' => 'telegram', 'driver_class' => TelegramDriver::class],
+            ['name' => 'mega', 'driver_class' => MegaDriver::class],
         ];
 
         foreach ($providers as $provider) {

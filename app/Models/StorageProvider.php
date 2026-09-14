@@ -12,6 +12,7 @@ class StorageProvider extends Model
         'dropbox' => 'Dropbox',
         'onedrive' => 'OneDrive',
         'telegram' => 'Telegram',
+        'mega' => 'MEGA',
     ];
 
     protected $fillable = ['name', 'driver_class', 'is_active'];

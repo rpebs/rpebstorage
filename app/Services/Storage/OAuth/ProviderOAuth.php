@@ -23,7 +23,7 @@ class ProviderOAuth
         'dropbox' => [
             'auth_url' => 'https://www.dropbox.com/oauth2/authorize',
             'token_url' => 'https://api.dropboxapi.com/oauth2/token',
-            'scope' => null,
+            'scope' => 'account_info.read files.metadata.read files.metadata.write files.content.read files.content.write',
             'auth_extra' => ['token_access_type' => 'offline'],
         ],
         'onedrive' => [
@@ -167,7 +167,7 @@ class ProviderOAuth
                 'google_drive' => Http::withToken($accessToken)
                     ->get('https://www.googleapis.com/oauth2/v3/userinfo'),
                 'dropbox' => Http::withToken($accessToken)
-                    ->post('https://api.dropboxapi.com/2/users/get_current_account'),
+                    ->send('POST', 'https://api.dropboxapi.com/2/users/get_current_account'),
                 'onedrive' => Http::withToken($accessToken)
                     ->get('https://graph.microsoft.com/v1.0/me'),
                 default => null,

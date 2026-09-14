@@ -2,11 +2,18 @@
 import { computed } from 'vue';
 import { formatBytes } from '@/lib/format';
 
-const props = defineProps<{
-    used: number;
-    total: number | null;
-    warningPercent?: number;
-}>();
+const props = withDefaults(
+    defineProps<{
+        used: number;
+        total: number | null;
+        warningPercent?: number;
+        hideLabel?: boolean;
+    }>(),
+    {
+        warningPercent: 90,
+        hideLabel: false,
+    },
+);
 
 const percent = computed(() => {
     if (props.total === null || props.total === 0) {
@@ -16,8 +23,7 @@ const percent = computed(() => {
 });
 
 const nearlyFull = computed(
-    () =>
-        percent.value !== null && percent.value >= (props.warningPercent ?? 90),
+    () => percent.value !== null && percent.value >= props.warningPercent,
 );
 
 const label = computed(() => {
@@ -44,6 +50,8 @@ const label = computed(() => {
                 aria-valuemax="100"
             />
         </div>
-        <p class="text-muted-foreground text-xs">{{ label }}</p>
+        <p v-if="!hideLabel" class="text-muted-foreground text-xs tabular-nums">
+            {{ label }}
+        </p>
     </div>
 </template>
