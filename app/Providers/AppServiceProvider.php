@@ -24,6 +24,25 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configureDevCommands();
+    }
+
+    /**
+     * Configure local development process runner.
+     * On Windows, Horizon requires pcntl/posix which is unsupported; replace it with queue:listen.
+     */
+    protected function configureDevCommands(): void
+    {
+        if (class_exists(\Illuminate\Foundation\DevCommands::class)) {
+            if (PHP_OS_FAMILY === 'Windows') {
+                \Illuminate\Foundation\DevCommands::except('horizon');
+                \Illuminate\Foundation\DevCommands::artisan('queue:listen --tries=1 --timeout=0', 'queue');
+            }
+
+            if (config('rpebs.telegram.dev_daemon')) {
+                \Illuminate\Foundation\DevCommands::artisan('telegram:listen', 'telegram');
+            }
+        }
     }
 
     /**

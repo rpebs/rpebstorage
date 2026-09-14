@@ -4,24 +4,47 @@ Agregator cloud storage multi-provider self-hosted: Google Drive, Dropbox, OneDr
 
 ## Prasyarat
 
-- PHP 8.5 (Windows: Laragon), ekstensi: openssl, pdo_mysql, mbstring, curl, fileinfo, gd, zip, sodium, bcmath
-- MySQL 8 / MariaDB
-- Redis (Laragon: `c:\laragon\bin\redis`)
-- Node 20+
-- Horizon hanya jalan di Linux/macOS (butuh pcntl/posix); di Windows dev pakai `composer dev` (queue:listen), Horizon aktif di VPS
+- **PHP 8.3+ / 8.5** (Windows: Laragon di `C:\laragon\bin\php\php-8.5.3`), ekstensi: `openssl`, `pdo_sqlite` (atau `pdo_mysql`), `mbstring`, `curl`, `fileinfo`, `gd`, `zip`, `sodium`, `bcmath`
+- **Node 20+**
+- **Database & Queue**:
+  - **Local (Rekomendasi / Zero-Config)**: **SQLite** + **Database Queue**. Tidak perlu install MySQL maupun Redis!
+  - **Production / Laragon**: MySQL 8 & Redis.
+- Horizon hanya berjalan di Linux/macOS (butuh `pcntl`/`posix`); di Windows dev secara otomatis memakai `queue:listen` dalam runner all-in-one.
 
-## Setup
+## Setup Cepat di Windows (1-Klik)
+
+Untuk setup pertama kali di Windows:
+```cmd
+.\setup.bat
+```
+Script ini otomatis mendeteksi PHP 8.x Laragon, menyalin `.env`, membuat database SQLite, menjalankan migrasi & seeder, serta menginstall dependensi NPM & Composer.
+
+Untuk menjalankan server dev harian (Server + Queue Worker + Vite dalam **1 jendela terminal**):
+```cmd
+.\dev.bat        # via Command Prompt / Double-click
+# atau jika menggunakan PowerShell:
+.\dev.ps1
+# atau jika PHP 8.3+ sudah ada di PATH sistem:
+composer dev
+```
+
+> **Akses web:** [http://127.0.0.1:8000](http://127.0.0.1:8000)  
+> Akun login default: `admin@rpebstorage.local` / `change-me-now` (dapat diubah di `.env`).
+
+---
+
+## Setup Manual
 
 ```bash
-cp .env.example .env            # lalu sesuaikan DB_*, ADMIN_EMAIL, ADMIN_PASSWORD
+cp .env.example .env            # sesuaikan variabel jika diperlukan (default: SQLite)
 composer install
 php artisan key:generate
 php artisan migrate --seed
 npm install && npm run build
-composer dev                    # server + queue worker + vite
+composer dev                    # all-in-one: web server + queue worker + vite
 ```
 
-User pertama dibuat dari seeder (`php artisan db:seed`), memakai `ADMIN_EMAIL` / `ADMIN_PASSWORD` di `.env`. Registrasi publik dimatikan (single-user).
+User pertama dibuat otomatis dari seeder (`php artisan db:seed`) memakai `ADMIN_EMAIL` / `ADMIN_PASSWORD` di `.env`. Registrasi publik dimatikan (single-user).
 
 ## Mengisi kredensial provider (per provider)
 

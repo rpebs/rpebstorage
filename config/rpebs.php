@@ -19,6 +19,8 @@ return [
         'chunk_size' => env('TELEGRAM_CHUNK_SIZE', 1024 * 1024 * 1024 * 1.5),
         // Seconds to wait between uploads per account (FLOOD_WAIT mitigation).
         'upload_delay' => env('TELEGRAM_UPLOAD_DELAY', 2),
+        // Run telegram:listen daemon automatically during dev runner (composer dev)
+        'dev_daemon' => env('TELEGRAM_DEV_DAEMON', (bool) (env('TELEGRAM_API_ID') && env('TELEGRAM_API_HASH'))),
     ],
 
     /*
