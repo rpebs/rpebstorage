@@ -152,11 +152,10 @@ class TelegramListenCommand extends Command
             'megagroup' => false,
         ]))->await();
 
-        // channels.createChannel returns messages.chatCreated { chat }; older shapes used updates.chats.
-        $chat = $result['chat']
-            ?? ($result['chats'][0] ?? null)
-            ?? ($result['updates']['chat'] ?? null)
-            ?? ($result['updates']['chats'][0] ?? null);
+        // channels.createChannel returns messages.chatCreated. The created
+        // channel object may appear under several shapes/keys depending on TL
+        // layer, so locate the first `channel`/`channelForbidden` entry.
+        $chat = $this->findChannel($result);
 
         $chatId = is_array($chat) ? (int) ($chat['id'] ?? 0) : 0;
 
@@ -164,21 +163,70 @@ class TelegramListenCommand extends Command
             throw new \RuntimeException('Gagal membuat channel bucket Telegram (respons tanpa chat id).');
         }
 
-        // A freshly created channel often has no access_hash yet; resolving the
-        // InputPeer through getInfo() forces MadelineProto to fetch it.
-        $peer = async(fn () => $mp->getInfo(Magic::ZERO_CHANNEL_ID - $chatId, API::INFO_TYPE_PEER))->await();
+        // A freshly created channel sometimes omits access_hash. Resolve it
+        // synchronously the same way the peer database does: request the
+        // channel with access_hash 0, which Telegram answers with the real hash.
+        $hash = $chat['access_hash'] ?? null;
 
-        if (! is_array($peer) || ($peer['_'] ?? '') !== 'inputPeerChannel' || empty($peer['access_hash'])) {
+        if (! $hash) {
+            $resolved = async(fn () => $mp->channels->getChannels(['id' => [
+                ['_' => 'inputChannel', 'channel_id' => $chatId, 'access_hash' => 0],
+            ]]))->await();
+
+            $hash = $resolved['chats'][0]['access_hash'] ?? null;
+        }
+
+        if (! $hash) {
             throw new \RuntimeException('Telegram belum mengembalikan access_hash untuk channel bucket; coba hubungkan ulang akun.');
         }
 
         $meta = $account->meta ?? [];
-        $meta['channel_id'] = (int) ($peer['channel_id'] ?? $chatId);
-        $meta['channel_hash'] = (string) $peer['access_hash'];
+        $meta['channel_id'] = $chatId;
+        $meta['channel_hash'] = (string) $hash;
         $account->meta = $meta;
         $account->save();
 
-        return ['channel_id' => $meta['channel_id']];
+        return ['channel_id' => $chatId];
+    }
+
+    /**
+     * @param  array<mixed>  $result
+     * @return array<mixed>|null
+     */
+    private function findChannel(array $result): ?array
+    {
+        $chat = $result['chat'] ?? null;
+
+        if (is_array($chat) && str_starts_with((string) ($chat['_'] ?? ''), 'channel')) {
+            return $chat;
+        }
+
+        $candidate = $result['chats'][0] ?? null;
+
+        if (is_array($candidate) && str_starts_with((string) ($candidate['_'] ?? ''), 'channel')) {
+            return $candidate;
+        }
+
+        // Fall back to a manual depth-first scan for a channel constructor.
+        $stack = [$result];
+
+        while ($stack) {
+            $node = array_pop($stack);
+
+            foreach ($node as $value) {
+                if (! is_array($value)) {
+                    continue;
+                }
+
+                if (str_starts_with((string) ($value['_'] ?? ''), 'channel') && isset($value['id'])) {
+                    return $value;
+                }
+
+                $stack[] = $value;
+            }
+        }
+
+        return null;
     }
 
     private function upload(array $request): array

@@ -1,6 +1,12 @@
 parameters:
 	ignoreErrors:
 		-
+			message: '#^Call to an undefined method danog\\MadelineProto\\Namespace\\Channels\:\:getChannels\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
 			message: '#^Cannot assign offset ''channel_id'' to array\|string\.$#'
 			identifier: offsetAssign.dimType
 			count: 1
@@ -157,7 +163,7 @@ parameters:
 			path: app/Console/Commands/TelegramListenCommand.php
 
 		-
-			message: '#^Property App\\Models\\StorageAccount\:\:\$meta \(string\|null\) does not accept array\<string, int\|string\>\.$#'
+			message: '#^Property App\\Models\\StorageAccount\:\:\$meta \(string\|null\) does not accept array\<string, int\<min, \-1\>\|int\<1, max\>\|string\>\.$#'
 			identifier: assign.propertyType
 			count: 1
 			path: app/Console/Commands/TelegramListenCommand.php
@@ -441,6 +447,12 @@ parameters:
 		-
 			message: '#^Call to an undefined method App\\Models\\StorageAccount\|Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\), App\\Models\\StorageAccount\>\:\:forceFill\(\)\.$#'
 			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/TelegramAuthController.php
+
+		-
+			message: '#^Offset ''connecting'' on string\|null on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
 			count: 1
 			path: app/Http/Controllers/TelegramAuthController.php
 
