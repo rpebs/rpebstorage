@@ -10,6 +10,7 @@ use App\Services\Telegram\TelegramRpc;
 use danog\MadelineProto\API;
 use danog\MadelineProto\LocalFile;
 use danog\MadelineProto\Logger;
+use danog\MadelineProto\Magic;
 use danog\MadelineProto\RPCErrorException;
 use danog\MadelineProto\Settings;
 use Illuminate\Console\Command;
@@ -151,15 +152,29 @@ class TelegramListenCommand extends Command
             'megagroup' => false,
         ]))->await();
 
-        $chat = $result['chats'][0] ?? ($result['updates']['chats'][0] ?? null);
+        // channels.createChannel returns messages.chatCreated { chat }; older shapes used updates.chats.
+        $chat = $result['chat']
+            ?? ($result['chats'][0] ?? null)
+            ?? ($result['updates']['chat'] ?? null)
+            ?? ($result['updates']['chats'][0] ?? null);
 
-        if ($chat === null || ! isset($chat['id'])) {
-            throw new \RuntimeException('Gagal membuat channel bucket Telegram.');
+        $chatId = is_array($chat) ? (int) ($chat['id'] ?? 0) : 0;
+
+        if ($chatId === 0) {
+            throw new \RuntimeException('Gagal membuat channel bucket Telegram (respons tanpa chat id).');
+        }
+
+        // A freshly created channel often has no access_hash yet; resolving the
+        // InputPeer through getInfo() forces MadelineProto to fetch it.
+        $peer = async(fn () => $mp->getInfo(Magic::ZERO_CHANNEL_ID - $chatId, API::INFO_TYPE_PEER))->await();
+
+        if (! is_array($peer) || ($peer['_'] ?? '') !== 'inputPeerChannel' || empty($peer['access_hash'])) {
+            throw new \RuntimeException('Telegram belum mengembalikan access_hash untuk channel bucket; coba hubungkan ulang akun.');
         }
 
         $meta = $account->meta ?? [];
-        $meta['channel_id'] = (int) $chat['id'];
-        $meta['channel_hash'] = (string) $chat['access_hash'];
+        $meta['channel_id'] = (int) ($peer['channel_id'] ?? $chatId);
+        $meta['channel_hash'] = (string) $peer['access_hash'];
         $account->meta = $meta;
         $account->save();
 
@@ -172,7 +187,8 @@ class TelegramListenCommand extends Command
         $account = StorageAccount::findOrFail($accountId);
         $mp = $this->mp($accountId);
         $peer = $this->bucketPeer($account);
-        $peerId = (int) ('-100'.$peer['channel_id']);
+        // Bot-API style peer id for channels (uploadDocument takes string|int peer).
+        $peerId = Magic::ZERO_CHANNEL_ID - (int) $peer['channel_id'];
 
         $path = (string) $request['path'];
         $name = (string) $request['name'];
