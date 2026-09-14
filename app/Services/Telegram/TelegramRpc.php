@@ -18,7 +18,7 @@ class TelegramRpc
 
     public const HEARTBEAT_KEY = 'telegram:daemon:alive';
 
-    private const REPLY_TTL = 300;
+    public const REPLY_TTL = 300;
 
     private const POLL_INTERVAL = 2;
 

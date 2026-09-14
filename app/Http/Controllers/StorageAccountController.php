@@ -6,6 +6,8 @@ use App\Enums\AccountStatus;
 use App\Models\StorageAccount;
 use App\Models\StorageProvider;
 use App\Services\Storage\OAuth\ProviderOAuth;
+use App\Services\Telegram\TelegramRpc;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -66,6 +68,22 @@ class StorageAccountController extends Controller
         abort_unless($account->user_id === $request->user()->id, 404);
 
         // FR-08: drop the stored tokens/session, mark files as inaccessible.
+        if ($account->provider->name === 'telegram') {
+            // Release the daemon's hold on the session first (it locks the dir),
+            // then delete the session dir as a fallback for when it's not running.
+            try {
+                app(TelegramRpc::class)->call('disconnect', ['account_id' => $account->id], timeout: 30);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+
+            $session = storage_path('app/'.config('rpebs.telegram.session_path').'/'.$account->id.'.madeline');
+
+            if (is_dir($session)) {
+                app(Filesystem::class)->deleteDirectory($session);
+            }
+        }
+
         $account->forceFill([
             'credentials' => null,
             'status' => AccountStatus::Disconnected,

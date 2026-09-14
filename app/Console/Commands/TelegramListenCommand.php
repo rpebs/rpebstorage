@@ -9,9 +9,11 @@ use App\Services\Storage\StorageManager;
 use App\Services\Telegram\TelegramRpc;
 use danog\MadelineProto\API;
 use danog\MadelineProto\LocalFile;
+use danog\MadelineProto\Logger;
 use danog\MadelineProto\RPCErrorException;
 use danog\MadelineProto\Settings;
 use Illuminate\Console\Command;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Redis;
 use Predis\ClientInterface;
 use Throwable;
@@ -62,11 +64,16 @@ class TelegramListenCommand extends Command
 
             $reply = $this->safelyHandle($request);
 
-            $this->redis->setex(
-                'telegram:rpc:reply:'.($request['id'] ?? 'unknown'),
-                TelegramRpc::REPLY_TTL,
-                json_encode($reply),
-            );
+            try {
+                $this->redis->setex(
+                    'telegram:rpc:reply:'.($request['id'] ?? 'unknown'),
+                    TelegramRpc::REPLY_TTL,
+                    json_encode($reply),
+                );
+            } catch (Throwable $e) {
+                // A failed reply must not kill the daemon; the client times out on its side.
+                report($e);
+            }
         }
     }
 
@@ -276,11 +283,22 @@ class TelegramListenCommand extends Command
             try {
                 async(fn () => $this->instances[$accountId]->stop())->await();
             } catch (Throwable) {
-                // The session file is removed right after; failures here are not fatal.
+                // Failures here are not fatal; the session dir is removed right after.
             }
 
             unset($this->instances[$accountId]);
         }
+
+        // v8 sessions are directories, not single files.
+        $dir = dirname($this->sessionPath($accountId));
+        $session = $this->sessionPath($accountId);
+
+        if (is_dir($session)) {
+            app(Filesystem::class)->deleteDirectory($session);
+        } elseif (file_exists($session)) {
+            @unlink($session);
+        }
+        @unlink($dir.'/'.$accountId.'.madeline.lock');
 
         return ['stopped' => true];
     }
@@ -386,6 +404,9 @@ class TelegramListenCommand extends Command
         $settings->getAppInfo()
             ->setApiId((int) config('rpebs.telegram.api_id'))
             ->setApiHash((string) config('rpebs.telegram.api_hash'));
+
+        // Quiet the per-message MTProto chatter; keep warnings and errors.
+        $settings->getLogger()->setLevel(Logger::WARNING);
 
         return $settings;
     }

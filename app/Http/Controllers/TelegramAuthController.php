@@ -6,6 +6,7 @@ use App\Enums\AccountStatus;
 use App\Models\StorageAccount;
 use App\Models\StorageProvider;
 use App\Services\Telegram\TelegramRpc;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -26,6 +27,24 @@ class TelegramAuthController extends Controller
         }
 
         $provider = StorageProvider::where('name', 'telegram')->firstOrFail();
+
+        // OTP attempts abandoned halfway leave hidden 'connecting' rows;
+        // clear them (and their session dirs) before creating a fresh one.
+        $stale = StorageAccount::where('user_id', $request->user()->id)
+            ->where('storage_provider_id', $provider->id)
+            ->where('status', AccountStatus::Expired)
+            ->where('created_at', '<', now()->subHour())
+            ->get();
+
+        foreach ($stale as $old) {
+            $session = storage_path('app/'.config('rpebs.telegram.session_path').'/'.$old->id.'.madeline');
+
+            if (is_dir($session)) {
+                app(Filesystem::class)->deleteDirectory($session);
+            }
+
+            $old->delete();
+        }
 
         $account = StorageAccount::create([
             'user_id' => $request->user()->id,
