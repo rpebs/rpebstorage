@@ -113,10 +113,10 @@ class FileManagerController extends Controller
             ->exists();
 
         if ($duplicate) {
-            return back()->with('flash', ['toast' => [
+            return $this->toast([
                 'type' => 'error',
                 'message' => "Folder \"{$validated['name']}\" sudah ada di lokasi ini.",
-            ]]);
+            ]);
         }
 
         VirtualFolder::create([
@@ -146,10 +146,10 @@ class FileManagerController extends Controller
         $empty = $folder->children()->doesntExist() && $folder->files()->doesntExist();
 
         if (! $empty) {
-            return back()->with('flash', ['toast' => [
+            return $this->toast([
                 'type' => 'error',
                 'message' => 'Folder tidak kosong. Kosongkan dulu sebelum dihapus.',
-            ]]);
+            ]);
         }
 
         $folder->delete();
@@ -175,10 +175,10 @@ class FileManagerController extends Controller
         }
 
         if ($user->storageAccounts()->where('status', AccountStatus::Active)->doesntExist()) {
-            return back()->with('flash', ['toast' => [
+            return $this->toast([
                 'type' => 'error',
                 'message' => 'Belum ada akun aktif. Hubungkan akun storage dulu.',
-            ]]);
+            ]);
         }
 
         $this->manager->ensureTempDir();
@@ -198,10 +198,10 @@ class FileManagerController extends Controller
 
         UploadFileJob::dispatch($row->id, $tempPath, $validated['account_id'] ?? null);
 
-        return back()->with('flash', ['toast' => [
+        return $this->toast([
             'type' => 'success',
             'message' => "{$row->original_name} masuk antrean unggah.",
-        ]]);
+        ]);
     }
 
     /**
@@ -236,10 +236,10 @@ class FileManagerController extends Controller
         $account = $file->account;
 
         if (! $account || $account->status !== AccountStatus::Active) {
-            return back()->with('flash', ['toast' => [
+            return $this->toast([
                 'type' => 'error',
                 'message' => 'File ini tersimpan di akun yang sudah diputuskan, tidak bisa diunduh.',
-            ]]);
+            ]);
         }
 
         $driver = $this->manager->driver($account);
@@ -252,10 +252,10 @@ class FileManagerController extends Controller
             if (! file_exists($merged)) {
                 DownloadFileJob::dispatch($file->id);
 
-                return back()->with('flash', ['toast' => [
+                return $this->toast([
                     'type' => 'info',
                     'message' => 'File besar sedang disiapkan. Klik unduh lagi dalam beberapa saat.',
-                ]]);
+                ]);
             }
 
             return new BinaryFileResponse($merged, 200, [], false, 'attachment', false, $file->name);
@@ -293,10 +293,10 @@ class FileManagerController extends Controller
         $account = $file->account;
 
         if (! $account || $account->status !== AccountStatus::Active) {
-            return back()->with('flash', ['toast' => [
+            return $this->toast([
                 'type' => 'error',
                 'message' => 'File tersimpan di akun yang sudah diputuskan, tidak bisa dihapus dari provider.',
-            ]]);
+            ]);
         }
 
         $merged = DownloadFileJob::mergedPath($this->manager, $file);
@@ -308,10 +308,10 @@ class FileManagerController extends Controller
 
         $file->delete();
 
-        return back()->with('flash', ['toast' => [
+        return $this->toast([
             'type' => 'success',
             'message' => "{$file->name} dihapus.",
-        ]]);
+        ]);
     }
 
     private function maxUploadKb(): int

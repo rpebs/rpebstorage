@@ -55,10 +55,10 @@ class StorageAccountController extends Controller
 
         $account->update(['alias' => $validated['alias']]);
 
-        return back()->with('flash', ['toast' => [
+        return $this->toast([
             'type' => 'success',
             'message' => 'Alias akun diperbarui.',
-        ]]);
+        ]);
     }
 
     public function destroy(Request $request, StorageAccount $account)
@@ -71,9 +71,9 @@ class StorageAccountController extends Controller
             'status' => AccountStatus::Disconnected,
         ])->save();
 
-        return back()->with('flash', ['toast' => [
+        return $this->toast([
             'type' => 'success',
             'message' => "Akun {$account->alias} diputuskan. File yang tersimpan di akun ini tidak bisa diakses lagi.",
-        ]]);
+        ]);
     }
 }

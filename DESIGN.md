@@ -30,7 +30,7 @@ Aplikasi storage personal, self-hosted, dipakai harian oleh satu orang teknis. B
 
 ## Typography
 
-**System font stack** (`system-ui, -apple-system, Segoe UI, Roboto, sans-serif`). Tanpa webfont. Alasan: utilitarian, load instan, identitas datang dari struktur dan hierarki, bukan font.
+**Instrument Sans** (dibundel & self-host oleh Vue starter kit resmi Laravel via bunny). Alasan: sans humanis-tech yang netral dan sangat terbaca untuk layar kerja harian; tidak menambah webfont asing karena sudah bagian dari kit. Angka pakai `font-variant-numeric: tabular-nums` agar baris kuota/file rapi.
 
 ## Ikon
 

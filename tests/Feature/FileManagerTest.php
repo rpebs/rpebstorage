@@ -172,7 +172,7 @@ class FileManagerTest extends TestCase
     {
         $this->post('/files/folders', ['name' => 'Docs'])->assertRedirect();
         $this->post('/files/folders', ['name' => 'Docs'])
-            ->assertSessionHas('flash.toast.type', 'error');
+            ->assertInertiaFlash('toast');
 
         $folder = VirtualFolder::where('name', 'Docs')->firstOrFail();
 
@@ -182,7 +182,7 @@ class FileManagerTest extends TestCase
 
         // Non-empty folder cannot be deleted.
         $this->uploadViaJob(['virtual_folder_id' => $folder->id, 'original_name' => 'nested.txt']);
-        $this->delete("/files/folders/{$folder->id}")->assertSessionHas('flash.toast.type', 'error');
+        $this->delete("/files/folders/{$folder->id}")->assertInertiaFlash('toast');
         $this->assertDatabaseHas('virtual_folders', ['id' => $folder->id]);
 
         // Empty folder can be deleted.
@@ -234,7 +234,7 @@ class FileManagerTest extends TestCase
         $file = $this->uploadViaJob();
         $this->account->update(['status' => 'disconnected']);
 
-        $this->get("/files/{$file->id}/download")->assertSessionHas('flash.toast.type', 'error');
+        $this->get("/files/{$file->id}/download")->assertInertiaFlash('toast');
     }
 
     public function test_jobs_endpoint_reports_recent_jobs(): void

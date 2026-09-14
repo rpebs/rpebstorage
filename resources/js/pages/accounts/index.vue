@@ -84,16 +84,22 @@ const statusClass: Record<string, string> = {
             <div class="flex flex-wrap gap-2">
                 <template v-for="provider in providers" :key="provider.name">
                     <TelegramConnect v-if="provider.name === 'telegram'" />
-                    <Button v-else variant="outline" as-child>
-                        <a
-                            :href="
-                                connectRedirect({ provider: provider.name }).url
-                            "
-                            >{{ provider.label }}</a
-                        >
+                    <Button v-else-if="provider.connectable" variant="outline" as-child>
+                        <a :href="connectRedirect({ provider: provider.name }).url">
+                            {{ provider.label }}
+                        </a>
+                    </Button>
+                    <Button v-else variant="outline" disabled :title="`Isi ${envKeys[provider.name]} di .env lalu jalankan: php artisan config:clear`">
+                        {{ provider.label }}
+                        <span class="text-muted-foreground text-xs">· butuh kredensial .env</span>
                     </Button>
                 </template>
             </div>
+            <p class="text-muted-foreground text-xs">
+                Provider yang nonaktif muncul karena client ID/secret-nya belum diisi di
+                <code>.env</code>. Setelah mengisi, jalankan
+                <code>php artisan config:clear</code>.
+            </p>
         </section>
 
         <section

@@ -21,10 +21,10 @@ class ProviderOAuthController extends Controller
     public function redirect(Request $request, StorageProvider $provider)
     {
         if (! ProviderOAuth::supported($provider->name)) {
-            return back()->with('flash', ['toast' => [
+            return $this->toast([
                 'type' => 'error',
                 'message' => "Kredensial OAuth untuk {$provider->label()} belum diisi di .env",
-            ]]);
+            ]);
         }
 
         $state = bin2hex(random_bytes(16));
@@ -40,17 +40,17 @@ class ProviderOAuthController extends Controller
         $expectedProvider = $request->session()->pull('oauth_provider');
 
         if ($request->input('state') !== $expectedState || $expectedProvider !== $provider->name) {
-            return redirect()->route('accounts.index')->with('flash', ['toast' => [
+            return $this->toastRoute('accounts.index', [
                 'type' => 'error',
                 'message' => 'Sesi OAuth tidak valid. Coba hubungkan lagi.',
-            ]]);
+            ]);
         }
 
         if ($request->filled('error')) {
-            return redirect()->route('accounts.index')->with('flash', ['toast' => [
+            return $this->toastRoute('accounts.index', [
                 'type' => 'error',
                 'message' => 'Koneksi dibatalkan di sisi provider.',
-            ]]);
+            ]);
         }
 
         try {
@@ -77,17 +77,17 @@ class ProviderOAuthController extends Controller
                 return $account;
             });
 
-            return redirect()->route('accounts.index')->with('flash', ['toast' => [
+            return $this->toastRoute('accounts.index', [
                 'type' => 'success',
                 'message' => "Akun {$provider->label()} terhubung.",
-            ]]);
+            ]);
         } catch (Throwable $e) {
             report($e);
 
-            return redirect()->route('accounts.index')->with('flash', ['toast' => [
+            return $this->toastRoute('accounts.index', [
                 'type' => 'error',
                 'message' => 'Gagal menghubungkan akun: '.$e->getMessage(),
-            ]]);
+            ]);
         }
     }
 }

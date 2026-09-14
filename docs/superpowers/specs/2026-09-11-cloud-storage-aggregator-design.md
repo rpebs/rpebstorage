@@ -1,10 +1,10 @@
 # Spec: rpebstorage, Platform Agregator Cloud Storage
 
-| | |
-|---|---|
-| Tanggal | 2026-09-11 |
-| Sumber | `PRD_Cloud_Storage_Aggregator.md` v1.0 |
-| Status | Disetujui user (desain presentasi 2026-09-11) |
+|         |                                               |
+| ------- | --------------------------------------------- |
+| Tanggal | 2026-09-11                                    |
+| Sumber  | `PRD_Cloud_Storage_Aggregator.md` v1.0        |
+| Status  | Disetujui user (desain presentasi 2026-09-11) |
 
 ## 1. Ringkasan
 
@@ -18,17 +18,17 @@ Platform web self-hosted yang menyatukan banyak akun cloud storage (Google Drive
 
 ## 3. Stack & Environment
 
-| Layer | Pilihan |
-|---|---|
-| Framework | Laravel 13 (PHP 8.5, Laragon; `php85` di PATH) |
+| Layer       | Pilihan                                                                                                                  |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Framework   | Laravel 13 (PHP 8.5, Laragon; `php85` di PATH)                                                                           |
 | Starter kit | Resmi **Vue starter kit**: Inertia 3, Vue 3 Composition API, TypeScript, Tailwind 4, shadcn-vue, Fortify auth, Wayfinder |
-| Auth | Fortify; **registration dimatikan** (hapus `Features::registration()`); user dibuat via seeder |
-| DB | MySQL (Laragon), DB `rpebstorage`, dibuat via migrasi resmi repo ini |
-| Queue | Horizon + Redis, client **predis** (ext-redis PHP belum terpasang) |
-| OAuth | Laravel Socialite: google, dropbox, microsoft (onedrive) |
-| Telegram | danog/madelineproto sebagai **daemon proses terpisah** |
-| UI bahasa | Indonesia |
-| Dev | Laragon (PHP 8.5, MySQL, Redis bundled), Node 24 |
+| Auth        | Fortify; **registration dimatikan** (hapus `Features::registration()`); user dibuat via seeder                           |
+| DB          | MySQL (Laragon), DB `rpebstorage`, dibuat via migrasi resmi repo ini                                                     |
+| Queue       | Horizon + Redis, client **predis** (ext-redis PHP belum terpasang)                                                       |
+| OAuth       | Laravel Socialite: google, dropbox, microsoft (onedrive)                                                                 |
+| Telegram    | danog/madelineproto sebagai **daemon proses terpisah**                                                                   |
+| UI bahasa   | Indonesia                                                                                                                |
+| Dev         | Laragon (PHP 8.5, MySQL, Redis bundled), Node 24                                                                         |
 
 Catatan: PRD menyebut Breeze/Jetstream; di Laravel 13 itu legacy, starter kit Vue adalah penerus resminya (Fortify di belakangnya).
 
@@ -81,15 +81,16 @@ Driver menerima kredensial/session akun yang sudah di-decrypt oleh `StorageManag
 **Proses:** `php artisan telegram:listen` (dijalankan via `composer dev` / supervisor nanti).
 
 **RPC via Redis:**
+
 - Laravel `LPUSH telegram:rpc` JSON `{id, action, account_id, payload}`.
 - Daemon `BRPOP`, eksekusi, reply `SETEX telegram:rpc:reply:{id} 300 <json>`; Laravel polling/blpop dengan timeout.
 - Actions:
-  - `connect.request_code` `{phone}` -> `{request_token}` (dialog web minta OTP)
-  - `connect.complete` `{phone, code, password?}` -> session disimpan terenkripsi di `storage/telegram-sessions/{account_id}.session` (enkripsi via Laravel `Crypt`)
-  - `connect.create_bucket` -> buat private channel, simpan channel id di `storage_accounts.meta`
-  - `upload` `{temp_path, file_name, size}` -> `{remote_ref}` (message_id + channel id; chunking ditangani daemon sesuai meta akun)
-  - `download` `{remote_ref, dest_path}` -> merge chunk otomatis jika perlu
-  - `delete` `{remote_ref}` -> hapus pesan channel
+    - `connect.request_code` `{phone}` -> `{request_token}` (dialog web minta OTP)
+    - `connect.complete` `{phone, code, password?}` -> session disimpan terenkripsi di `storage/telegram-sessions/{account_id}.session` (enkripsi via Laravel `Crypt`)
+    - `connect.create_bucket` -> buat private channel, simpan channel id di `storage_accounts.meta`
+    - `upload` `{temp_path, file_name, size}` -> `{remote_ref}` (message_id + channel id; chunking ditangani daemon sesuai meta akun)
+    - `download` `{remote_ref, dest_path}` -> merge chunk otomatis jika perlu
+    - `delete` `{remote_ref}` -> hapus pesan channel
 - Progres: daemon adalah command Laravel penuh (punya akses DB), jadi ia update `file_jobs.progress` langsung saat upload berjalan. UI polling `/files/jobs` sudah cukup, tanpa pubsub tambahan.
 
 **Throttle:** delay antar upload per akun (default 2 detik, via `sleep`/rate limiter di daemon) untuk mitigaasi FLOOD_WAIT. FLOOD_WAIT diteruskan sebagai error terstruktur; job retry dengan backoff.
@@ -98,14 +99,14 @@ Driver menerima kredensial/session akun yang sudah di-decrypt oleh `StorageManag
 
 Sesuai PRD §9, plus perubahan berikut (detail kolom di migrasi):
 
-| Tabel | Catatan |
-|---|---|
-| `users` | bawaan starter kit |
-| `storage_providers` | `name` (unique: google_drive/dropbox/onedrive/telegram), `driver_class`, `is_active`; seeder 4 baris |
-| `storage_accounts` | `credentials` text encrypted-cast (JSON), `meta` JSON (channel id Telegram), `status` enum(active/expired/disconnected), `quota_total` bigint NULL (NULL=unlimited), `quota_used` bigint, `quota_synced_at` timestamp |
-| `virtual_folders` | `parent_id` self-FK nullable, unique(`user_id`,`parent_id`,`name`) |
-| `virtual_files` | `virtual_folder_id` nullable (null=root), `storage_account_id`, `name`, `remote_ref` text, `size`, `mime_type`, `is_chunked` bool; index `(user_id via folder?)` name index untuk search |
-| `file_chunks` | `virtual_file_id`, `chunk_index`, `remote_file_id`, `size`, `checksum` |
+| Tabel                  | Catatan                                                                                                                                                                                                                                   |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `users`                | bawaan starter kit                                                                                                                                                                                                                        |
+| `storage_providers`    | `name` (unique: google_drive/dropbox/onedrive/telegram), `driver_class`, `is_active`; seeder 4 baris                                                                                                                                      |
+| `storage_accounts`     | `credentials` text encrypted-cast (JSON), `meta` JSON (channel id Telegram), `status` enum(active/expired/disconnected), `quota_total` bigint NULL (NULL=unlimited), `quota_used` bigint, `quota_synced_at` timestamp                     |
+| `virtual_folders`      | `parent_id` self-FK nullable, unique(`user_id`,`parent_id`,`name`)                                                                                                                                                                        |
+| `virtual_files`        | `virtual_folder_id` nullable (null=root), `storage_account_id`, `name`, `remote_ref` text, `size`, `mime_type`, `is_chunked` bool; index `(user_id via folder?)` name index untuk search                                                  |
+| `file_chunks`          | `virtual_file_id`, `chunk_index`, `remote_file_id`, `size`, `checksum`                                                                                                                                                                    |
 | `file_jobs` **(baru)** | `user_id`, `type` enum(upload), `virtual_folder_id`, `storage_account_id` nullable, `original_name`, `size`, `mime_type`, `status` enum(pending/processing/done/failed), `progress` tinyint, `error` text nullable; dibutuhkan polling UI |
 
 Catatan search: `virtual_files.name` di-query LIKE + index; Scout/Meilisearch tidak untuk MVP.
@@ -178,10 +179,10 @@ Lihat `DESIGN.md` (root). Halaman: Login (starter kit), Dashboard, Files, Accoun
 
 ## 14. Risiko & Mitigasi (dari PRD §13 + temuan)
 
-| Risiko | Mitigasi |
-|---|---|
+| Risiko                                                          | Mitigasi                                                                                    |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | MadelineProto vs PHP 8.5 belum terverifikasi (fetch docs gagal) | Verifikasi awal Fase 3; fallback jalankan daemon via PHP 8.4 di Laragon (multi-PHP coexist) |
-| FLOOD_WAIT / rate limit Telegram | Throttle per akun, backoff retry, batasi concurrency per akun |
-| Chunk corrupt | checksum per chunk, validasi saat merge, gagal = error jelas per chunk |
-| Token dicabut provider | Middleware deteksi 401 -> status expired + banner reconnect |
-| Upload 2GB single POST | Tuning php.ini; client-side chunking = upgrade pasca-MVP (ponytail) |
+| FLOOD_WAIT / rate limit Telegram                                | Throttle per akun, backoff retry, batasi concurrency per akun                               |
+| Chunk corrupt                                                   | checksum per chunk, validasi saat merge, gagal = error jelas per chunk                      |
+| Token dicabut provider                                          | Middleware deteksi 401 -> status expired + banner reconnect                                 |
+| Upload 2GB single POST                                          | Tuning php.ini; client-side chunking = upgrade pasca-MVP (ponytail)                         |

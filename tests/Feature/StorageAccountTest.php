@@ -75,7 +75,7 @@ class StorageAccountTest extends TestCase
 
         $this->delete("/accounts/{$account->id}")
             ->assertRedirect()
-            ->assertSessionHas('flash.toast.type', 'success');
+            ->assertInertiaFlash('toast');
 
         $fresh = $account->fresh();
         $this->assertSame('disconnected', $fresh->status->value);
