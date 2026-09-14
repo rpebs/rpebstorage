@@ -1,12 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Access to private constant REPLY_TTL of class App\\Services\\Telegram\\TelegramRpc\.$#'
-			identifier: classConstant.private
-			count: 1
-			path: app/Console/Commands/TelegramListenCommand.php
-
-		-
 			message: '#^Cannot assign offset ''channel_id'' to array\|string\.$#'
 			identifier: offsetAssign.dimType
 			count: 1
@@ -375,7 +369,7 @@ parameters:
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
 			identifier: property.notFound
-			count: 1
+			count: 2
 			path: app/Http/Controllers/StorageAccountController.php
 
 		-
@@ -785,12 +779,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: app/Services/Storage/StorageManager.php
-
-		-
-			message: '#^Constant App\\Services\\Telegram\\TelegramRpc\:\:REPLY_TTL is unused\.$#'
-			identifier: classConstant.unused
-			count: 1
-			path: app/Services/Telegram/TelegramRpc.php
 
 		-
 			message: '#^Method App\\Services\\Telegram\\TelegramRpc\:\:call\(\) has parameter \$payload with no value type specified in iterable type array\.$#'
