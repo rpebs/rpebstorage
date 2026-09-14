@@ -89,7 +89,12 @@ const statusClass: Record<string, string> = {
                             {{ provider.label }}
                         </a>
                     </Button>
-                    <Button v-else variant="outline" disabled :title="`Isi ${envKeys[provider.name]} di .env lalu jalankan: php artisan config:clear`">
+                    <Button
+                        v-else
+                        variant="outline"
+                        disabled
+                        title="Isi client ID + secret provider ini di .env, lalu jalankan php artisan config:clear"
+                    >
                         {{ provider.label }}
                         <span class="text-muted-foreground text-xs">· butuh kredensial .env</span>
                     </Button>
