@@ -49,6 +49,9 @@ class TelegramListenCommand extends Command
         $this->info('telegram:listen berjalan. Menunggu RPC...');
 
         while (true) {
+            // Heartbeat so the web side can fail fast when this daemon dies.
+            $this->redis->setex(TelegramRpc::HEARTBEAT_KEY, 15, '1');
+
             $packed = $this->redis->brpop([TelegramRpc::QUEUE], 5);
 
             if ($packed === null || count($packed) < 2) {

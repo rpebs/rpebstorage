@@ -20,6 +20,11 @@ class TelegramAuthController extends Controller
         ]);
 
         $phone = '+'.ltrim($validated['phone'], '+');
+
+        if (! TelegramRpc::daemonAlive()) {
+            return response()->json(['message' => 'Daemon Telegram tidak berjalan. Jalankan: composer telegram'], 422);
+        }
+
         $provider = StorageProvider::where('name', 'telegram')->firstOrFail();
 
         $account = StorageAccount::create([

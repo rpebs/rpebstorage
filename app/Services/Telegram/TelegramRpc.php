@@ -16,6 +16,8 @@ class TelegramRpc
 {
     public const QUEUE = 'telegram:rpc';
 
+    public const HEARTBEAT_KEY = 'telegram:daemon:alive';
+
     private const REPLY_TTL = 300;
 
     private const POLL_INTERVAL = 2;
@@ -23,6 +25,11 @@ class TelegramRpc
     public static function daemonConfigured(): bool
     {
         return (bool) config('rpebs.telegram.api_id') && (bool) config('rpebs.telegram.api_hash');
+    }
+
+    public static function daemonAlive(): bool
+    {
+        return Redis::exists(self::HEARTBEAT_KEY) > 0;
     }
 
     /**
