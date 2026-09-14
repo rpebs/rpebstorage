@@ -16,6 +16,7 @@ class StorageAccountController extends Controller
     public function index(Request $request)
     {
         $accounts = $request->user()->storageAccounts()
+            ->where('status', '!=', AccountStatus::Disconnected)
             ->with('provider')
             ->orderBy('created_at')
             ->get()

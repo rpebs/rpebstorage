@@ -7,7 +7,10 @@ use App\Models\StorageAccount;
 use App\Services\Storage\Concerns\HandlesChunking;
 use App\Services\Storage\StorageManager;
 use App\Services\Telegram\TelegramRpc;
+use danog\DialogId\DialogId;
 use danog\MadelineProto\API;
+use danog\MadelineProto\APIWrapper;
+use danog\MadelineProto\InternalDoc;
 use danog\MadelineProto\LocalFile;
 use danog\MadelineProto\Logger;
 use danog\MadelineProto\Magic;
@@ -146,47 +149,132 @@ class TelegramListenCommand extends Command
         $account = StorageAccount::findOrFail($accountId);
         $mp = $this->mp($accountId);
 
-        $result = async(fn () => $mp->channels->createChannel([
-            'title' => 'rpebstorage bucket',
-            'about' => 'Private storage bucket dibuat oleh rpebstorage',
-            'megagroup' => false,
-        ]))->await();
+        $prop = new \ReflectionProperty(InternalDoc::class, 'wrapper');
+        $wrapper = $prop->getValue($mp);
+        $raw = $wrapper instanceof APIWrapper ? $wrapper->getAPI() : null;
 
-        // channels.createChannel returns messages.chatCreated. The created
-        // channel object may appear under several shapes/keys depending on TL
-        // layer, so locate the first `channel`/`channelForbidden` entry.
-        $chat = $this->findChannel($result);
+        $hash = null;
+        $mtprotoId = null;
 
-        $chatId = is_array($chat) ? (int) ($chat['id'] ?? 0) : 0;
+        // 1. Re-use an existing bucket channel created earlier if present in dialogs.
+        if ($raw !== null) {
+            try {
+                $dialogs = async(fn () => $raw->methodCallAsyncRead('messages.getDialogs', [
+                    'offset_date' => 0,
+                    'offset_id' => 0,
+                    'offset_peer' => ['_' => 'inputPeerEmpty'],
+                    'limit' => 100,
+                    'hash' => 0,
+                ]))->await();
 
-        if ($chatId === 0) {
-            throw new \RuntimeException('Gagal membuat channel bucket Telegram (respons tanpa chat id).');
+                foreach ($dialogs['chats'] ?? [] as $c) {
+                    if (! is_array($c)) {
+                        continue;
+                    }
+                    if (($c['title'] ?? '') === 'rpebstorage bucket' && ! empty($c['access_hash']) && empty($c['left'])) {
+                        $mtprotoId = DialogId::toMTProtoId((int) $c['id']);
+                        $hash = $c['access_hash'];
+                        break;
+                    }
+                }
+            } catch (Throwable) {
+            }
         }
 
-        // A freshly created channel sometimes omits access_hash. Resolve it
-        // synchronously the same way the peer database does: request the
-        // channel with access_hash 0, which Telegram answers with the real hash.
-        $hash = $chat['access_hash'] ?? null;
-
+        // 2. If not found, create a new broadcast channel.
         if (! $hash) {
-            $resolved = async(fn () => $mp->channels->getChannels(['id' => [
-                ['_' => 'inputChannel', 'channel_id' => $chatId, 'access_hash' => 0],
-            ]]))->await();
+            $result = async(fn () => $mp->channels->createChannel(
+                broadcast: true,
+                megagroup: false,
+                title: 'rpebstorage bucket',
+                about: 'Private storage bucket dibuat oleh rpebstorage',
+            ))->await();
 
-            $hash = $resolved['chats'][0]['access_hash'] ?? null;
+            $chat = $this->findChannel($result);
+            $chatId = is_array($chat) ? (int) ($chat['id'] ?? 0) : 0;
+
+            if ($chatId === 0) {
+                throw new \RuntimeException('Gagal membuat channel bucket Telegram (respons tanpa chat id).');
+            }
+
+            $mtprotoId = DialogId::toMTProtoId($chatId);
+            $hash = $chat['access_hash'] ?? null;
         }
 
-        if (! $hash) {
+        // 3. Freshly created channels often omit access_hash in the createChannel response.
+        // Resolve it via messages.getDialogs or MadelineProto peer methods.
+        if (! $hash && $mtprotoId !== null) {
+            $botApiId = DialogId::fromSupergroupOrChannelId($mtprotoId);
+
+            for ($attempt = 0; $attempt < 6 && ! $hash; $attempt++) {
+                if ($attempt > 0) {
+                    async(fn () => \Amp\delay(1))->await();
+                }
+
+                if ($raw !== null) {
+                    try {
+                        $dialogs = async(fn () => $raw->methodCallAsyncRead('messages.getDialogs', [
+                            'offset_date' => 0,
+                            'offset_id' => 0,
+                            'offset_peer' => ['_' => 'inputPeerEmpty'],
+                            'limit' => 100,
+                            'hash' => 0,
+                        ]))->await();
+
+                        foreach ($dialogs['chats'] ?? [] as $c) {
+                            if (! is_array($c)) {
+                                continue;
+                            }
+                            $cMtprotoId = DialogId::toMTProtoId((int) ($c['id'] ?? 0));
+                            if (($cMtprotoId === $mtprotoId || ($c['title'] ?? '') === 'rpebstorage bucket') && ! empty($c['access_hash'])) {
+                                $hash = $c['access_hash'];
+                                $mtprotoId = $cMtprotoId;
+                                break;
+                            }
+                        }
+                    } catch (Throwable) {
+                    }
+                }
+
+                if (! $hash) {
+                    try {
+                        async(fn () => $mp->getFullDialogs())->await();
+                    } catch (Throwable) {
+                    }
+                }
+
+                if (! $hash) {
+                    try {
+                        $info = async(fn () => $mp->getInfo($botApiId))->await();
+                        if (is_array($info)) {
+                            $hash = $info['Chat']['access_hash'] ?? ($info['access_hash'] ?? null);
+                        }
+                    } catch (Throwable) {
+                    }
+                }
+
+                if (! $hash) {
+                    try {
+                        $pwr = async(fn () => $mp->getPwrChat($botApiId))->await();
+                        if (is_array($pwr)) {
+                            $hash = $pwr['Chat']['access_hash'] ?? ($pwr['access_hash'] ?? null);
+                        }
+                    } catch (Throwable) {
+                    }
+                }
+            }
+        }
+
+        if (! $hash || $mtprotoId === null) {
             throw new \RuntimeException('Telegram belum mengembalikan access_hash untuk channel bucket; coba hubungkan ulang akun.');
         }
 
         $meta = $account->meta ?? [];
-        $meta['channel_id'] = $chatId;
+        $meta['channel_id'] = $mtprotoId;
         $meta['channel_hash'] = (string) $hash;
-        $account->meta = $meta;
-        $account->save();
+        $account->forceFill(['meta' => $meta])->save();
 
-        return ['channel_id' => $chatId];
+        return ['channel_id' => $mtprotoId];
     }
 
     /**
@@ -195,16 +283,18 @@ class TelegramListenCommand extends Command
      */
     private function findChannel(array $result): ?array
     {
-        $chat = $result['chat'] ?? null;
+        $candidates = [];
 
-        if (is_array($chat) && str_starts_with((string) ($chat['_'] ?? ''), 'channel')) {
-            return $chat;
+        if (isset($result['chat']) && is_array($result['chat'])) {
+            $candidates[] = $result['chat'];
         }
 
-        $candidate = $result['chats'][0] ?? null;
-
-        if (is_array($candidate) && str_starts_with((string) ($candidate['_'] ?? ''), 'channel')) {
-            return $candidate;
+        if (isset($result['chats']) && is_array($result['chats'])) {
+            foreach ($result['chats'] as $chat) {
+                if (is_array($chat)) {
+                    $candidates[] = $chat;
+                }
+            }
         }
 
         // Fall back to a manual depth-first scan for a channel constructor.
@@ -213,16 +303,33 @@ class TelegramListenCommand extends Command
         while ($stack) {
             $node = array_pop($stack);
 
-            foreach ($node as $value) {
+            foreach ($node as $key => $value) {
                 if (! is_array($value)) {
                     continue;
                 }
 
-                if (str_starts_with((string) ($value['_'] ?? ''), 'channel') && isset($value['id'])) {
-                    return $value;
+                $type = (string) ($value['_'] ?? '');
+                if (($type === 'channel' || $type === 'channelForbidden') && isset($value['id'])) {
+                    $candidates[] = $value;
+                } elseif ($key !== 'chats' && $key !== 'chat') {
+                    $stack[] = $value;
                 }
+            }
+        }
 
-                $stack[] = $value;
+        // Prioritize candidate with non-empty access_hash
+        foreach ($candidates as $cand) {
+            $type = (string) ($cand['_'] ?? '');
+            if (($type === 'channel' || $type === 'channelForbidden') && isset($cand['id'], $cand['access_hash']) && $cand['access_hash'] !== 0 && $cand['access_hash'] !== '0' && $cand['access_hash'] !== '') {
+                return $cand;
+            }
+        }
+
+        // Fallback to any channel constructor
+        foreach ($candidates as $cand) {
+            $type = (string) ($cand['_'] ?? '');
+            if (($type === 'channel' || $type === 'channelForbidden') && isset($cand['id'])) {
+                return $cand;
             }
         }
 
@@ -387,9 +494,9 @@ class TelegramListenCommand extends Command
         sleep((int) config('rpebs.telegram.upload_delay'));
 
         try {
-            $message = async(fn () => $mp->uploadDocument(
-                file: new LocalFile($path),
+            $message = async(fn () => $mp->sendDocument(
                 peer: $peerId,
+                file: new LocalFile($path),
                 fileName: $name,
                 silent: true,
             ))->await();
@@ -402,9 +509,9 @@ class TelegramListenCommand extends Command
             $wait = (int) (preg_replace('/\D/', '', $e->getMessage()) ?: 15);
             sleep(min($wait, 120));
 
-            $message = async(fn () => $mp->uploadDocument(
-                file: new LocalFile($path),
+            $message = async(fn () => $mp->sendDocument(
                 peer: $peerId,
+                file: new LocalFile($path),
                 fileName: $name,
                 silent: true,
             ))->await();
@@ -421,21 +528,30 @@ class TelegramListenCommand extends Command
 
     private function extractMessageId(mixed $result): ?int
     {
-        if (is_object($result) && isset($result->id)) {
+        if (is_object($result) && isset($result->id) && is_numeric($result->id)) {
             return (int) $result->id;
         }
 
-        $found = null;
-
         if (is_array($result)) {
+            if (isset($result['id']) && is_numeric($result['id'])) {
+                return (int) $result['id'];
+            }
+
+            if (isset($result['message_id']) && is_numeric($result['message_id'])) {
+                return (int) $result['message_id'];
+            }
+
+            $found = null;
             array_walk_recursive($result, function ($value, $key) use (&$found) {
-                if ($found === null && $key === 'message_id' && is_int($value)) {
+                if ($found === null && ($key === 'message_id' || $key === 'id') && is_int($value) && $value > 0) {
                     $found = $value;
                 }
             });
+
+            return $found;
         }
 
-        return $found;
+        return null;
     }
 
     private function bucketPeer(StorageAccount $account): array
@@ -448,7 +564,7 @@ class TelegramListenCommand extends Command
 
         return [
             '_' => 'inputPeerChannel',
-            'channel_id' => (int) $meta['channel_id'],
+            'channel_id' => DialogId::toMTProtoId((int) $meta['channel_id']),
             'access_hash' => (string) $meta['channel_hash'],
         ];
     }

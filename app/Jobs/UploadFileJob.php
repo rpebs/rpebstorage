@@ -21,10 +21,7 @@ class UploadFileJob implements ShouldQueue
     use InteractsWithQueue;
     use SerializesModels;
 
-    public int $tries = 3;
-
-    /** @var array<int, int> */
-    public array $backoff = [60, 300];
+    public int $tries = 1;
 
     public int $timeout = 7200;
 
@@ -89,6 +86,8 @@ class UploadFileJob implements ShouldQueue
 
     public function failed(Throwable $e): void
     {
+        @unlink($this->tempPath);
+
         FileJob::whereKey($this->fileJobRowId)
             ->whereNot('status', JobStatus::Done)
             ->update(['status' => JobStatus::Failed, 'error' => $e->getMessage()]);

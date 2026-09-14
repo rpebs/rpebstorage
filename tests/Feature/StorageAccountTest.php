@@ -41,6 +41,31 @@ class StorageAccountTest extends TestCase
             ->assertInertia(fn ($page) => $page->component('accounts/index')->has('accounts', 0));
     }
 
+    public function test_disconnected_accounts_are_hidden_from_accounts_page(): void
+    {
+        $provider = StorageProvider::where('name', 'fake')->firstOrFail();
+
+        $this->user->storageAccounts()->create([
+            'storage_provider_id' => $provider->id,
+            'alias' => 'Akun Aktif',
+            'status' => 'active',
+        ]);
+
+        $this->user->storageAccounts()->create([
+            'storage_provider_id' => $provider->id,
+            'alias' => 'Akun Putus',
+            'status' => 'disconnected',
+        ]);
+
+        $this->get('/accounts')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('accounts/index')
+                ->has('accounts', 1)
+                ->where('accounts.0.alias', 'Akun Aktif')
+            );
+    }
+
     public function test_alias_can_be_changed(): void
     {
         $account = $this->user->storageAccounts()->create([

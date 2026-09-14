@@ -40,7 +40,15 @@ class TelegramAuthController extends Controller
             $session = storage_path('app/'.config('rpebs.telegram.session_path').'/'.$old->id.'.madeline');
 
             if (is_dir($session)) {
-                app(Filesystem::class)->deleteDirectory($session);
+                try {
+                    $this->rpc->call('disconnect', ['account_id' => $old->id], timeout: 10);
+                } catch (\Throwable) {
+                }
+
+                try {
+                    app(Filesystem::class)->deleteDirectory($session);
+                } catch (\Throwable) {
+                }
             }
 
             $old->delete();
@@ -107,10 +115,13 @@ class TelegramAuthController extends Controller
             return response()->json(['message' => 'Login Telegram berhasil, tapi gagal membuat channel bucket: '.$e->getMessage()], 422);
         }
 
+        $meta = $account->fresh()->meta ?? [];
+        $meta['connecting'] = false;
+
         $account->forceFill([
             'alias' => 'Telegram ('.($result['name'] ?: $result['phone']).')',
             'status' => AccountStatus::Active,
-            'meta' => ['connecting' => false],
+            'meta' => $meta,
             'quota_synced_at' => now(),
         ])->save();
 

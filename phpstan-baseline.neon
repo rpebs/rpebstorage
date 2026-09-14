@@ -1,12 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Call to an undefined method danog\\MadelineProto\\Namespace\\Channels\:\:getChannels\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Console/Commands/TelegramListenCommand.php
-
-		-
 			message: '#^Cannot assign offset ''channel_id'' to array\|string\.$#'
 			identifier: offsetAssign.dimType
 			count: 1
@@ -132,11 +126,6 @@ parameters:
 			count: 1
 			path: app/Console/Commands/TelegramListenCommand.php
 
-		-
-			message: '#^Parameter \#1 \$broadcast of method danog\\MadelineProto\\Namespace\\Channels\:\:createChannel\(\) expects bool\|null, array\<string, string\|false\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Console/Commands/TelegramListenCommand.php
 
 		-
 			message: '#^Parameter \#1 \$stream of function fclose expects resource, resource\|false given\.$#'
@@ -159,12 +148,6 @@ parameters:
 		-
 			message: '#^Parameter \#2 \$length of function fread expects int\<1, max\>, int\<min, 1048576\> given\.$#'
 			identifier: argument.type
-			count: 1
-			path: app/Console/Commands/TelegramListenCommand.php
-
-		-
-			message: '#^Property App\\Models\\StorageAccount\:\:\$meta \(string\|null\) does not accept array\<string, int\<min, \-1\>\|int\<1, max\>\|string\>\.$#'
-			identifier: assign.propertyType
 			count: 1
 			path: app/Console/Commands/TelegramListenCommand.php
 
