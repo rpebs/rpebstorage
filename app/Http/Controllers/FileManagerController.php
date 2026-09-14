@@ -254,7 +254,7 @@ class FileManagerController extends Controller
 
                 return back()->with('flash', ['toast' => [
                     'type' => 'info',
-                    'message' => "File besar sedang disiapkan. Klik unduh lagi dalam beberapa saat.",
+                    'message' => 'File besar sedang disiapkan. Klik unduh lagi dalam beberapa saat.',
                 ]]);
             }
 

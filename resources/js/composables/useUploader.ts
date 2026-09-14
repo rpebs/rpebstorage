@@ -29,7 +29,11 @@ export function useUploader() {
     let pollTimer: number | null = null;
     let reloadTimer: number | null = null;
 
-    function add(files: File[], folderId: number | null, accountId: number | null): void {
+    function add(
+        files: File[],
+        folderId: number | null,
+        accountId: number | null,
+    ): void {
         for (const file of files) {
             const item: UploadItem = {
                 id: `${file.name}-${file.size}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -44,7 +48,12 @@ export function useUploader() {
         }
     }
 
-    function uploadOne(item: UploadItem, file: File, folderId: number | null, accountId: number | null): void {
+    function uploadOne(
+        item: UploadItem,
+        file: File,
+        folderId: number | null,
+        accountId: number | null,
+    ): void {
         const form = new FormData();
         form.append('file', file);
 
@@ -100,7 +109,8 @@ export function useUploader() {
         }
     }
 
-    const uploadingCount = () => items.value.filter((i) => i.status === 'uploading').length;
+    const uploadingCount = () =>
+        items.value.filter((i) => i.status === 'uploading').length;
 
     function startPolling(): void {
         if (pollTimer !== null) {
@@ -113,7 +123,9 @@ export function useUploader() {
             }
 
             try {
-                const response = await fetch('/files/jobs', { headers: { Accept: 'application/json' } });
+                const response = await fetch('/files/jobs', {
+                    headers: { Accept: 'application/json' },
+                });
                 if (response.ok) {
                     const payload = await response.json();
                     serverJobs.value = payload.jobs ?? [];

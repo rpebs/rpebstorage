@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Http;
 class GoogleDriveDriver extends BaseCloudDriver
 {
     private const API = 'https://www.googleapis.com/drive/v3';
+
     private const UPLOAD = 'https://www.googleapis.com/upload/drive/v3/files';
 
     public function __construct(

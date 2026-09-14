@@ -24,24 +24,39 @@ trait HandlesChunking
         }
 
         $chunks = [];
+        $offset = 0;
         $index = 0;
 
-        while (! feof($handle)) {
+        while ($offset < $size) {
             $chunkPath = $filePath.".part{$index}";
             $chunkHandle = fopen($chunkPath, 'wb');
             $chunkChecksum = hash_init('md5');
 
-            $remaining = min($chunkSize, $size - ($index * $chunkSize));
+            $remaining = min($chunkSize, $size - $offset);
             $written = 0;
 
-            while ($written < $remaining && ($buffer = fread($handle, 1024 * 1024)) !== false) {
-                $read = strlen($buffer);
+            while ($written < $remaining) {
+                $buffer = fread($handle, (int) min(1024 * 1024, $remaining - $written));
+
+                if ($buffer === false || $buffer === '') {
+                    break;
+                }
+
                 fwrite($chunkHandle, $buffer);
                 hash_update($chunkChecksum, $buffer);
-                $written += $read;
+                $written += strlen($buffer);
             }
 
             fclose($chunkHandle);
+
+            if ($written === 0) {
+                // Unexpected EOF mid-file: fail loudly instead of spinning.
+                fclose($handle);
+                @unlink($chunkPath);
+                throw new RuntimeException("File {$filePath} terpotong saat dibaca.");
+            }
+
+            $offset += $written;
 
             $chunks[] = [
                 'path' => $chunkPath,

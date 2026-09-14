@@ -10,10 +10,12 @@ use Illuminate\Support\Facades\Http;
 class DropboxDriver extends BaseCloudDriver
 {
     private const CONTENT = 'https://content.dropboxapi.com/2';
+
     private const API = 'https://api.dropboxapi.com/2';
 
     // Single-request upload cap per Dropbox API docs.
     private const SIMPLE_UPLOAD_MAX = 150 * 1024 * 1024;
+
     private const SESSION_CHUNK = 100 * 1024 * 1024;
 
     public function upload(StorageAccount $account, string $localFilePath, string $fileName): UploadResult

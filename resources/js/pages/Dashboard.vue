@@ -32,10 +32,14 @@ defineOptions({
     <Head title="Dashboard" />
 
     <div class="mx-auto w-full max-w-3xl space-y-6 px-4 py-6">
-        <div v-if="total.account_count === 0" class="rounded-lg border border-dashed p-10 text-center">
+        <div
+            v-if="total.account_count === 0"
+            class="rounded-lg border border-dashed p-10 text-center"
+        >
             <p class="font-medium">Kapasitas gabungan masih nol</p>
             <p class="text-muted-foreground mt-1 text-sm">
-                Hubungkan akun Google Drive, Dropbox, OneDrive, atau Telegram untuk mulai.
+                Hubungkan akun Google Drive, Dropbox, OneDrive, atau Telegram
+                untuk mulai.
             </p>
             <a
                 href="/accounts"
@@ -54,25 +58,37 @@ defineOptions({
                     role="status"
                 >
                     <span class="font-medium">{{ account.alias }}</span>
-                    hampir penuh ({{ formatBytes(account.quota_used) }} terpakai).
+                    hampir penuh ({{ formatBytes(account.quota_used) }}
+                    terpakai).
                     <a href="/files" class="underline">Bersihkan file</a>
                     atau tambah akun baru.
                 </div>
             </section>
 
-            <section aria-label="Kapasitas gabungan" class="rounded-lg border p-6">
-                <p class="text-muted-foreground text-sm">Total kapasitas gabungan</p>
+            <section
+                aria-label="Kapasitas gabungan"
+                class="rounded-lg border p-6"
+            >
+                <p class="text-muted-foreground text-sm">
+                    Total kapasitas gabungan
+                </p>
                 <p class="mt-2 text-3xl font-semibold tracking-tight">
                     {{ formatBytes(total.used) }}
                     <span class="text-muted-foreground text-lg font-normal">
-                        / {{ total.quota > 0 ? formatBytes(total.quota) : 'unlimited' }}
+                        /
+                        {{
+                            total.quota > 0
+                                ? formatBytes(total.quota)
+                                : 'unlimited'
+                        }}
                     </span>
                 </p>
                 <div class="mt-4">
                     <CapacityBar :used="total.used" :total="total.quota" />
                 </div>
                 <p class="text-muted-foreground mt-3 text-xs">
-                    {{ total.account_count }} akun · {{ total.file_count }} file terkelola
+                    {{ total.account_count }} akun · {{ total.file_count }} file
+                    terkelola
                 </p>
             </section>
 
@@ -84,11 +100,18 @@ defineOptions({
                     class="flex flex-col gap-2 rounded-lg border p-4 sm:flex-row sm:items-center sm:gap-6"
                 >
                     <div class="min-w-0 sm:w-56">
-                        <p class="truncate text-sm font-medium">{{ account.alias }}</p>
-                        <p class="text-muted-foreground text-xs">{{ account.provider_label }}</p>
+                        <p class="truncate text-sm font-medium">
+                            {{ account.alias }}
+                        </p>
+                        <p class="text-muted-foreground text-xs">
+                            {{ account.provider_label }}
+                        </p>
                     </div>
                     <div class="flex-1">
-                        <CapacityBar :used="account.quota_used" :total="account.quota_total" />
+                        <CapacityBar
+                            :used="account.quota_used"
+                            :total="account.quota_total"
+                        />
                     </div>
                 </div>
             </section>

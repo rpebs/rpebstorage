@@ -15,7 +15,9 @@ class TelegramRpcException extends RuntimeException {}
 class TelegramRpc
 {
     public const QUEUE = 'telegram:rpc';
+
     private const REPLY_TTL = 300;
+
     private const POLL_INTERVAL = 2;
 
     public static function daemonConfigured(): bool

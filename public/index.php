@@ -11,7 +11,11 @@ if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php'))
 }
 
 // Register the Composer autoloader...
+// MadelineProto's polyfill echoes a Windows performance warning at load time;
+// buffer it so it never leaks into the HTTP response body.
+ob_start();
 require __DIR__.'/../vendor/autoload.php';
+ob_end_clean();
 
 // Bootstrap Laravel and handle the request...
 /** @var Application $app */

@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
 import { redirect as connectRedirect } from '@/actions/App/Http/Controllers/Auth/ProviderOAuthController';
-import { destroy, index, update } from '@/actions/App/Http/Controllers/StorageAccountController';
+import {
+    destroy,
+    index,
+    update,
+} from '@/actions/App/Http/Controllers/StorageAccountController';
 import CapacityBar from '@/components/CapacityBar.vue';
 import TelegramConnect from '@/components/TelegramConnect.vue';
 import { Badge } from '@/components/ui/badge';
@@ -57,8 +61,10 @@ const statusLabel: Record<string, string> = {
 
 const statusClass: Record<string, string> = {
     active: 'bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950 dark:text-teal-300 dark:border-teal-800',
-    expired: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800',
-    disconnected: 'bg-neutral-100 text-neutral-500 border-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:border-neutral-700',
+    expired:
+        'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800',
+    disconnected:
+        'bg-neutral-100 text-neutral-500 border-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:border-neutral-700',
 };
 </script>
 
@@ -68,7 +74,8 @@ const statusClass: Record<string, string> = {
         <header class="space-y-1">
             <h1 class="text-lg font-semibold">Akun Storage</h1>
             <p class="text-muted-foreground text-sm">
-                Hubungkan satu atau lebih akun per provider. Semua akun gabung jadi satu filesystem virtual.
+                Hubungkan satu atau lebih akun per provider. Semua akun gabung
+                jadi satu filesystem virtual.
             </p>
         </header>
 
@@ -78,16 +85,25 @@ const statusClass: Record<string, string> = {
                 <template v-for="provider in providers" :key="provider.name">
                     <TelegramConnect v-if="provider.name === 'telegram'" />
                     <Button v-else variant="outline" as-child>
-                        <a :href="connectRedirect({ provider: provider.name }).url">{{ provider.label }}</a>
+                        <a
+                            :href="
+                                connectRedirect({ provider: provider.name }).url
+                            "
+                            >{{ provider.label }}</a
+                        >
                     </Button>
                 </template>
             </div>
         </section>
 
-        <section v-if="accounts.length === 0" class="rounded-lg border border-dashed p-8 text-center">
+        <section
+            v-if="accounts.length === 0"
+            class="rounded-lg border border-dashed p-8 text-center"
+        >
             <p class="font-medium">Belum ada akun terhubung</p>
             <p class="text-muted-foreground mt-1 text-sm">
-                Hubungkan salah satu provider di atas untuk mulai mengunggah file.
+                Hubungkan salah satu provider di atas untuk mulai mengunggah
+                file.
             </p>
         </section>
 
@@ -99,21 +115,32 @@ const statusClass: Record<string, string> = {
             >
                 <div class="min-w-0 flex-1 space-y-1.5">
                     <div class="flex items-center gap-2">
-                        <p class="truncate text-sm font-medium">{{ account.alias }}</p>
-                        <Badge variant="outline" :class="statusClass[account.status]">
+                        <p class="truncate text-sm font-medium">
+                            {{ account.alias }}
+                        </p>
+                        <Badge
+                            variant="outline"
+                            :class="statusClass[account.status]"
+                        >
                             {{ statusLabel[account.status] }}
                         </Badge>
                     </div>
                     <p class="text-muted-foreground text-xs">
-                        {{ account.provider_label }} · {{ account.file_count }} file
+                        {{ account.provider_label }} ·
+                        {{ account.file_count }} file
                     </p>
-                    <CapacityBar :used="account.quota_used" :total="account.quota_total" />
+                    <CapacityBar
+                        :used="account.quota_used"
+                        :total="account.quota_total"
+                    />
                 </div>
 
                 <div class="flex shrink-0 items-center gap-2">
                     <Dialog>
                         <DialogTrigger as-child>
-                            <Button variant="ghost" size="sm">Ganti alias</Button>
+                            <Button variant="ghost" size="sm"
+                                >Ganti alias</Button
+                            >
                         </DialogTrigger>
                         <DialogContent>
                             <Form
@@ -125,19 +152,33 @@ const statusClass: Record<string, string> = {
                                 <DialogHeader>
                                     <DialogTitle>Ganti alias akun</DialogTitle>
                                     <DialogDescription>
-                                        Nama yang muncul di daftar akun dan pilihan tujuan upload.
+                                        Nama yang muncul di daftar akun dan
+                                        pilihan tujuan upload.
                                     </DialogDescription>
                                 </DialogHeader>
                                 <div class="grid gap-2">
                                     <Label for="alias">Alias</Label>
-                                    <Input id="alias" name="alias" :default-value="account.alias" required maxlength="100" />
-                                    <p v-if="errors.alias" class="text-sm text-red-600">{{ errors.alias }}</p>
+                                    <Input
+                                        id="alias"
+                                        name="alias"
+                                        :default-value="account.alias"
+                                        required
+                                        maxlength="100"
+                                    />
+                                    <p
+                                        v-if="errors.alias"
+                                        class="text-sm text-red-600"
+                                    >
+                                        {{ errors.alias }}
+                                    </p>
                                 </div>
                                 <DialogFooter>
                                     <DialogClose as-child>
                                         <Button variant="ghost">Batal</Button>
                                     </DialogClose>
-                                    <Button type="submit" :disabled="processing">Simpan</Button>
+                                    <Button type="submit" :disabled="processing"
+                                        >Simpan</Button
+                                    >
                                 </DialogFooter>
                             </Form>
                         </DialogContent>
@@ -145,7 +186,12 @@ const statusClass: Record<string, string> = {
 
                     <Dialog>
                         <DialogTrigger as-child>
-                            <Button variant="ghost" size="sm" class="text-red-600 hover:text-red-600">Putuskan</Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                class="text-red-600 hover:text-red-600"
+                                >Putuskan</Button
+                            >
                         </DialogTrigger>
                         <DialogContent>
                             <Form
@@ -155,17 +201,26 @@ const statusClass: Record<string, string> = {
                                 v-slot="{ processing }"
                             >
                                 <DialogHeader>
-                                    <DialogTitle>Putuskan {{ account.alias }}?</DialogTitle>
+                                    <DialogTitle
+                                        >Putuskan
+                                        {{ account.alias }}?</DialogTitle
+                                    >
                                     <DialogDescription>
-                                        Token atau session dihapus dari server. File yang sudah tersimpan di akun ini
-                                        tetap tercatat tapi tidak bisa diunduh atau dihapus lagi dari sini.
+                                        Token atau session dihapus dari server.
+                                        File yang sudah tersimpan di akun ini
+                                        tetap tercatat tapi tidak bisa diunduh
+                                        atau dihapus lagi dari sini.
                                     </DialogDescription>
                                 </DialogHeader>
                                 <DialogFooter>
                                     <DialogClose as-child>
                                         <Button variant="ghost">Batal</Button>
                                     </DialogClose>
-                                    <Button type="submit" variant="destructive" :disabled="processing">
+                                    <Button
+                                        type="submit"
+                                        variant="destructive"
+                                        :disabled="processing"
+                                    >
                                         Putuskan akun
                                     </Button>
                                 </DialogFooter>

@@ -33,7 +33,8 @@ async function requestCode() {
         await postJson('/accounts/telegram/start', { phone: phone.value });
         step.value = 'code';
     } catch (e: unknown) {
-        error.value = e instanceof Error ? e.message : 'Gagal mengirim kode OTP.';
+        error.value =
+            e instanceof Error ? e.message : 'Gagal mengirim kode OTP.';
     } finally {
         busy.value = false;
     }
@@ -44,14 +45,18 @@ async function verify() {
     error.value = '';
 
     try {
-        const response = await postJson<{ status?: string }>('/accounts/telegram/verify', {
-            code: code.value,
-            password: password.value || undefined,
-        });
+        const response = await postJson<{ status?: string }>(
+            '/accounts/telegram/verify',
+            {
+                code: code.value,
+                password: password.value || undefined,
+            },
+        );
 
         if (response.status === 'password_needed') {
             needsPassword.value = true;
-            error.value = 'Akun ini pakai verifikasi dua langkah. Masukkan password Telegram.';
+            error.value =
+                'Akun ini pakai verifikasi dua langkah. Masukkan password Telegram.';
             busy.value = false;
             return;
         }
@@ -84,7 +89,8 @@ function reset() {
             <DialogHeader>
                 <DialogTitle>Hubungkan Telegram</DialogTitle>
                 <DialogDescription>
-                    Login pakai nomor Telegram kamu (MTProto). Kode OTP dikirim ke aplikasi Telegram.
+                    Login pakai nomor Telegram kamu (MTProto). Kode OTP dikirim
+                    ke aplikasi Telegram.
                 </DialogDescription>
             </DialogHeader>
 
@@ -116,11 +122,22 @@ function reset() {
             <form v-else class="space-y-4" @submit.prevent="verify">
                 <div class="grid gap-2">
                     <Label for="code">Kode OTP</Label>
-                    <Input id="code" v-model="code" inputmode="numeric" required autofocus />
+                    <Input
+                        id="code"
+                        v-model="code"
+                        inputmode="numeric"
+                        required
+                        autofocus
+                    />
                 </div>
                 <div v-if="needsPassword" class="grid gap-2">
                     <Label for="tg-password">Password 2FA Telegram</Label>
-                    <Input id="tg-password" v-model="password" type="password" autocomplete="current-password" />
+                    <Input
+                        id="tg-password"
+                        v-model="password"
+                        type="password"
+                        autocomplete="current-password"
+                    />
                 </div>
                 <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
                 <DialogFooter>

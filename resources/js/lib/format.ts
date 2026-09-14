@@ -1,4 +1,7 @@
-export function formatBytes(bytes: number | null | undefined, precision = 1): string {
+export function formatBytes(
+    bytes: number | null | undefined,
+    precision = 1,
+): string {
     if (bytes === null || bytes === undefined) {
         return '-';
     }

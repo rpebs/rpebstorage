@@ -10,7 +10,9 @@ use Illuminate\Support\Facades\Http;
 class OneDriveDriver extends BaseCloudDriver
 {
     private const GRAPH = 'https://graph.microsoft.com/v1.0';
+
     private const SIMPLE_UPLOAD_MAX = 4 * 1024 * 1024;
+
     private const SESSION_CHUNK = 10 * 1024 * 1024;
 
     public function upload(StorageAccount $account, string $localFilePath, string $fileName): UploadResult

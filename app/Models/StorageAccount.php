@@ -24,7 +24,7 @@ class StorageAccount extends Model
     protected function casts(): array
     {
         return [
-            'credentials' => 'encrypted',
+            'credentials' => 'encrypted:array',
             'meta' => 'array',
             'quota_synced_at' => 'datetime',
             'status' => AccountStatus::class,

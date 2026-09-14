@@ -1,8 +1,8 @@
 <?php
 
+use App\Http\Controllers\Auth\ProviderOAuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FileManagerController;
-use App\Http\Controllers\Auth\ProviderOAuthController;
 use App\Http\Controllers\StorageAccountController;
 use App\Http\Controllers\TelegramAuthController;
 use Illuminate\Support\Facades\Route;

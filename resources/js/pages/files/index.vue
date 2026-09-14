@@ -65,17 +65,25 @@ const dragDepth = ref(0);
 const targetAccountId = ref<string>('auto');
 const fileInput = ref<HTMLInputElement | null>(null);
 
-const { items, serverJobs, uploadingCount, add, startPolling, stopPolling } = useUploader();
+const { items, serverJobs, uploadingCount, add, startPolling, stopPolling } =
+    useUploader();
 
 const activeJobs = computed(() =>
-    serverJobs.value.filter((j) => j.status === 'pending' || j.status === 'processing'),
+    serverJobs.value.filter(
+        (j) => j.status === 'pending' || j.status === 'processing',
+    ),
 );
 const recentJobs = computed(() =>
-    serverJobs.value.filter((j) => j.status === 'done' || j.status === 'failed'),
+    serverJobs.value.filter(
+        (j) => j.status === 'done' || j.status === 'failed',
+    ),
 );
 
 const panelVisible = computed(
-    () => items.value.length > 0 || activeJobs.value.length > 0 || recentJobs.value.length > 0,
+    () =>
+        items.value.length > 0 ||
+        activeJobs.value.length > 0 ||
+        recentJobs.value.length > 0,
 );
 
 // Poll the server job queue whenever uploads are in flight.
@@ -86,11 +94,15 @@ watch(
 );
 
 function submitFiles(files: FileList | File[] | null): void {
-    if (! files || files.length === 0) {
+    if (!files || files.length === 0) {
         return;
     }
 
-    add(Array.from(files), props.folder?.id ?? null, targetAccountId.value === 'auto' ? null : Number(targetAccountId.value));
+    add(
+        Array.from(files),
+        props.folder?.id ?? null,
+        targetAccountId.value === 'auto' ? null : Number(targetAccountId.value),
+    );
 }
 
 function onDrop(event: DragEvent): void {
@@ -110,7 +122,10 @@ function submitSearch(): void {
 }
 
 const newFolderOpen = ref(false);
-const newFolderForm = useForm({ name: '', parent_id: props.folder?.id ?? null });
+const newFolderForm = useForm({
+    name: '',
+    parent_id: props.folder?.id ?? null,
+});
 
 function createFolder(): void {
     newFolderForm.parent_id = props.folder?.id ?? null;
@@ -132,13 +147,16 @@ function openMove(file: { id: number; name: string }): void {
 }
 
 function submitMove(): void {
-    if (! movingFile.value) {
+    if (!movingFile.value) {
         return;
     }
 
     router.patch(
         `/files/${movingFile.value.id}/move`,
-        { folder_id: moveTarget.value === 'root' ? null : Number(moveTarget.value) },
+        {
+            folder_id:
+                moveTarget.value === 'root' ? null : Number(moveTarget.value),
+        },
         { preserveScroll: true, onSuccess: () => (movingFile.value = null) },
     );
 }
@@ -146,7 +164,7 @@ function submitMove(): void {
 const deletingFile = ref<{ id: number; name: string } | null>(null);
 
 function submitDelete(): void {
-    if (! deletingFile.value) {
+    if (!deletingFile.value) {
         return;
     }
 
@@ -160,20 +178,24 @@ const renamingFolder = ref<{ id: number; name: string } | null>(null);
 const renameForm = useForm({ name: '' });
 
 function submitRenameFolder(): void {
-    if (! renamingFolder.value) {
+    if (!renamingFolder.value) {
         return;
     }
 
-    router.patch(`/files/folders/${renamingFolder.value.id}`, { name: renameForm.name }, {
-        preserveScroll: true,
-        onSuccess: () => (renamingFolder.value = null),
-    });
+    router.patch(
+        `/files/folders/${renamingFolder.value.id}`,
+        { name: renameForm.name },
+        {
+            preserveScroll: true,
+            onSuccess: () => (renamingFolder.value = null),
+        },
+    );
 }
 
 const deletingFolder = ref<{ id: number; name: string } | null>(null);
 
 function submitDeleteFolder(): void {
-    if (! deletingFolder.value) {
+    if (!deletingFolder.value) {
         return;
     }
 
@@ -192,9 +214,14 @@ function folderLabel(id: number | null): string {
 }
 
 const isEmpty = computed(
-    () => props.folders.length === 0 && props.files.length === 0 && props.search === '',
+    () =>
+        props.folders.length === 0 &&
+        props.files.length === 0 &&
+        props.search === '',
 );
-const searchEmpty = computed(() => props.files.length === 0 && props.search !== '');
+const searchEmpty = computed(
+    () => props.files.length === 0 && props.search !== '',
+);
 </script>
 
 <template>
@@ -202,15 +229,31 @@ const searchEmpty = computed(() => props.files.length === 0 && props.search !== 
 
     <div
         class="relative flex h-full flex-1 flex-col"
-        @dragenter.prevent="dragDepth++; isDragging = true"
+        @dragenter.prevent="
+            dragDepth++;
+            isDragging = true;
+        "
         @dragover.prevent
-        @dragleave.prevent="dragDepth = Math.max(0, dragDepth - 1); if (dragDepth === 0) isDragging = false"
+        @dragleave.prevent="
+            dragDepth = Math.max(0, dragDepth - 1);
+            if (dragDepth === 0) isDragging = false;
+        "
         @drop.prevent="onDrop"
     >
         <div class="mx-auto w-full max-w-5xl space-y-4 px-4 py-6">
-            <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <nav aria-label="Breadcrumb" class="flex min-w-0 flex-wrap items-center gap-1 text-sm">
-                    <Link href="/files" class="hover:underline" :class="{ 'font-medium': !folder }">Root</Link>
+            <div
+                class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
+            >
+                <nav
+                    aria-label="Breadcrumb"
+                    class="flex min-w-0 flex-wrap items-center gap-1 text-sm"
+                >
+                    <Link
+                        href="/files"
+                        class="hover:underline"
+                        :class="{ 'font-medium': !folder }"
+                        >Root</Link
+                    >
                     <template v-for="crumb in breadcrumb" :key="crumb.id">
                         <span class="text-muted-foreground">/</span>
                         <Link
@@ -223,9 +266,14 @@ const searchEmpty = computed(() => props.files.length === 0 && props.search !== 
                     </template>
                 </nav>
 
-                <form class="flex items-center gap-2" @submit.prevent="submitSearch">
+                <form
+                    class="flex items-center gap-2"
+                    @submit.prevent="submitSearch"
+                >
                     <div class="relative">
-                        <Search class="text-muted-foreground pointer-events-none absolute top-2.5 left-2.5 h-4 w-4" />
+                        <Search
+                            class="text-muted-foreground pointer-events-none absolute top-2.5 left-2.5 h-4 w-4"
+                        />
                         <Input
                             v-model="searchInput"
                             type="search"
@@ -235,7 +283,9 @@ const searchEmpty = computed(() => props.files.length === 0 && props.search !== 
                             @input="searchForm.q = searchInput"
                         />
                     </div>
-                    <Button type="submit" variant="ghost" size="sm">Cari</Button>
+                    <Button type="submit" variant="ghost" size="sm"
+                        >Cari</Button
+                    >
                 </form>
             </div>
 
@@ -246,7 +296,9 @@ const searchEmpty = computed(() => props.files.length === 0 && props.search !== 
                     multiple
                     class="sr-only"
                     aria-label="Pilih file untuk diunggah"
-                    @change="submitFiles(($event.target as HTMLInputElement).files)"
+                    @change="
+                        submitFiles(($event.target as HTMLInputElement).files)
+                    "
                 />
                 <Button size="sm" @click="fileInput?.click()">
                     <Upload class="h-4 w-4" />
@@ -265,21 +317,36 @@ const searchEmpty = computed(() => props.files.length === 0 && props.search !== 
                             <DialogHeader>
                                 <DialogTitle>Folder baru</DialogTitle>
                                 <DialogDescription>
-                                    Folder virtual, tidak dibuat di provider asli.
+                                    Folder virtual, tidak dibuat di provider
+                                    asli.
                                 </DialogDescription>
                             </DialogHeader>
                             <div class="grid gap-2">
                                 <Label for="folder-name">Nama folder</Label>
-                                <Input id="folder-name" v-model="newFolderForm.name" required maxlength="120" />
-                                <p v-if="newFolderForm.errors.name" class="text-sm text-red-600">
+                                <Input
+                                    id="folder-name"
+                                    v-model="newFolderForm.name"
+                                    required
+                                    maxlength="120"
+                                />
+                                <p
+                                    v-if="newFolderForm.errors.name"
+                                    class="text-sm text-red-600"
+                                >
                                     {{ newFolderForm.errors.name }}
                                 </p>
                             </div>
                             <DialogFooter>
                                 <DialogClose as-child>
-                                    <Button type="button" variant="ghost">Batal</Button>
+                                    <Button type="button" variant="ghost"
+                                        >Batal</Button
+                                    >
                                 </DialogClose>
-                                <Button type="submit" :disabled="newFolderForm.processing">Buat</Button>
+                                <Button
+                                    type="submit"
+                                    :disabled="newFolderForm.processing"
+                                    >Buat</Button
+                                >
                             </DialogFooter>
                         </form>
                     </DialogContent>
@@ -290,8 +357,14 @@ const searchEmpty = computed(() => props.files.length === 0 && props.search !== 
                         <SelectValue placeholder="Akun tujuan" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="auto">Otomatis (sisa kuota terbesar)</SelectItem>
-                        <SelectItem v-for="account in accounts" :key="account.id" :value="String(account.id)">
+                        <SelectItem value="auto"
+                            >Otomatis (sisa kuota terbesar)</SelectItem
+                        >
+                        <SelectItem
+                            v-for="account in accounts"
+                            :key="account.id"
+                            :value="String(account.id)"
+                        >
                             {{ account.label }}
                         </SelectItem>
                     </SelectContent>
@@ -305,48 +378,104 @@ const searchEmpty = computed(() => props.files.length === 0 && props.search !== 
             >
                 <p class="mb-2 text-xs font-medium">Transfer</p>
                 <ul class="space-y-1.5 text-sm">
-                    <li v-for="item in items" :key="item.id" class="flex items-center gap-3">
-                        <Upload class="text-muted-foreground h-3.5 w-3.5 shrink-0" />
+                    <li
+                        v-for="item in items"
+                        :key="item.id"
+                        class="flex items-center gap-3"
+                    >
+                        <Upload
+                            class="text-muted-foreground h-3.5 w-3.5 shrink-0"
+                        />
                         <span class="w-48 truncate">{{ item.name }}</span>
-                        <div class="bg-muted h-1 w-40 overflow-hidden rounded-full">
+                        <div
+                            class="bg-muted h-1 w-40 overflow-hidden rounded-full"
+                        >
                             <div
                                 class="h-full rounded-full"
-                                :class="item.status === 'failed' ? 'bg-red-500' : 'bg-teal-600 dark:bg-teal-400'"
-                                :style="{ width: `${item.status === 'done' ? 100 : item.progress}%` }"
+                                :class="
+                                    item.status === 'failed'
+                                        ? 'bg-red-500'
+                                        : 'bg-teal-600 dark:bg-teal-400'
+                                "
+                                :style="{
+                                    width: `${item.status === 'done' ? 100 : item.progress}%`,
+                                }"
                             />
                         </div>
                         <span class="text-muted-foreground text-xs">
-                            {{ item.status === 'uploading' ? `${item.progress}%` : item.status === 'done' ? 'terkirim ke antrean' : item.error }}
+                            {{
+                                item.status === 'uploading'
+                                    ? `${item.progress}%`
+                                    : item.status === 'done'
+                                      ? 'terkirim ke antrean'
+                                      : item.error
+                            }}
                         </span>
                     </li>
-                    <li v-for="job in activeJobs" :key="job.id" class="flex items-center gap-3">
-                        <Upload class="text-muted-foreground h-3.5 w-3.5 shrink-0" />
+                    <li
+                        v-for="job in activeJobs"
+                        :key="job.id"
+                        class="flex items-center gap-3"
+                    >
+                        <Upload
+                            class="text-muted-foreground h-3.5 w-3.5 shrink-0"
+                        />
                         <span class="w-48 truncate">{{ job.name }}</span>
-                        <div class="bg-muted h-1 w-40 overflow-hidden rounded-full">
+                        <div
+                            class="bg-muted h-1 w-40 overflow-hidden rounded-full"
+                        >
                             <div
                                 class="h-full rounded-full bg-teal-600 dark:bg-teal-400"
-                                :style="{ width: `${Math.max(5, job.progress)}%` }"
+                                :style="{
+                                    width: `${Math.max(5, job.progress)}%`,
+                                }"
                             />
                         </div>
-                        <span class="text-muted-foreground text-xs">memproses di server {{ job.progress }}%</span>
+                        <span class="text-muted-foreground text-xs"
+                            >memproses di server {{ job.progress }}%</span
+                        >
                     </li>
-                    <li v-for="job in recentJobs" :key="job.id" class="flex items-center gap-3">
-                        <Upload class="text-muted-foreground h-3.5 w-3.5 shrink-0" />
+                    <li
+                        v-for="job in recentJobs"
+                        :key="job.id"
+                        class="flex items-center gap-3"
+                    >
+                        <Upload
+                            class="text-muted-foreground h-3.5 w-3.5 shrink-0"
+                        />
                         <span class="w-48 truncate">{{ job.name }}</span>
                         <span
                             class="text-xs"
-                            :class="job.status === 'done' ? 'text-teal-600 dark:text-teal-400' : 'text-red-600 dark:text-red-400'"
+                            :class="
+                                job.status === 'done'
+                                    ? 'text-teal-600 dark:text-teal-400'
+                                    : 'text-red-600 dark:text-red-400'
+                            "
                         >
-                            {{ job.status === 'done' ? 'selesai' : `gagal: ${job.error}` }}
+                            {{
+                                job.status === 'done'
+                                    ? 'selesai'
+                                    : `gagal: ${job.error}`
+                            }}
                         </span>
                     </li>
                 </ul>
             </div>
 
-            <div v-if="isEmpty" class="rounded-lg border border-dashed p-10 text-center">
-                <p class="font-medium">{{ folder ? `Folder "${folder.name}" kosong` : 'Root kosong' }}</p>
+            <div
+                v-if="isEmpty"
+                class="rounded-lg border border-dashed p-10 text-center"
+            >
+                <p class="font-medium">
+                    {{
+                        folder
+                            ? `Folder "${folder.name}" kosong`
+                            : 'Root kosong'
+                    }}
+                </p>
                 <p class="text-muted-foreground mt-1 text-sm">
-                    Tarik file ke sini, atau klik Unggah. Pilih akun tujuan di dropdown, atau biarkan otomatis.
+                    Tarik file ke sini, atau klik Unggah. Pilih akun tujuan di
+                    dropdown, atau biarkan otomatis.
                 </p>
                 <Button size="sm" class="mt-4" @click="fileInput?.click()">
                     <Upload class="h-4 w-4" />
@@ -354,9 +483,16 @@ const searchEmpty = computed(() => props.files.length === 0 && props.search !== 
                 </Button>
             </div>
 
-            <div v-else-if="searchEmpty" class="rounded-lg border border-dashed p-10 text-center">
+            <div
+                v-else-if="searchEmpty"
+                class="rounded-lg border border-dashed p-10 text-center"
+            >
                 <p class="font-medium">Tidak ada file bernama "{{ search }}"</p>
-                <Link href="/files" class="text-sm text-teal-700 hover:underline dark:text-teal-400">Kembali ke daftar</Link>
+                <Link
+                    href="/files"
+                    class="text-sm text-teal-700 hover:underline dark:text-teal-400"
+                    >Kembali ke daftar</Link
+                >
             </div>
 
             <div v-else class="overflow-hidden rounded-lg border">
@@ -371,8 +507,13 @@ const searchEmpty = computed(() => props.files.length === 0 && props.search !== 
                             class="flex min-w-0 flex-1 items-center gap-3 text-left"
                             @click="navigateToFolder(item.id)"
                         >
-                            <FolderIcon class="h-4 w-4 shrink-0" aria-hidden="true" />
-                            <span class="truncate text-sm">{{ item.name }}</span>
+                            <FolderIcon
+                                class="h-4 w-4 shrink-0"
+                                aria-hidden="true"
+                            />
+                            <span class="truncate text-sm">{{
+                                item.name
+                            }}</span>
                         </button>
                         <div class="flex shrink-0 items-center gap-1">
                             <Dialog>
@@ -380,25 +521,55 @@ const searchEmpty = computed(() => props.files.length === 0 && props.search !== 
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        class="h-8 w-8"
+                                        class="h-11 w-11"
                                         aria-label="Ganti nama folder"
-                                        @click="renamingFolder = { id: item.id, name: item.name }; renameForm.name = item.name"
+                                        @click="
+                                            renamingFolder = {
+                                                id: item.id,
+                                                name: item.name,
+                                            };
+                                            renameForm.name = item.name;
+                                        "
                                     >
                                         <FolderInput class="h-4 w-4" />
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent>
-                                    <form class="space-y-6" @submit.prevent="submitRenameFolder">
+                                    <form
+                                        class="space-y-6"
+                                        @submit.prevent="submitRenameFolder"
+                                    >
                                         <DialogHeader>
-                                            <DialogTitle>Ganti nama folder</DialogTitle>
+                                            <DialogTitle
+                                                >Ganti nama folder</DialogTitle
+                                            >
                                         </DialogHeader>
                                         <div class="grid gap-2">
-                                            <Label for="rename-folder">Nama</Label>
-                                            <Input id="rename-folder" v-model="renameForm.name" required maxlength="120" />
+                                            <Label for="rename-folder"
+                                                >Nama</Label
+                                            >
+                                            <Input
+                                                id="rename-folder"
+                                                v-model="renameForm.name"
+                                                required
+                                                maxlength="120"
+                                            />
                                         </div>
                                         <DialogFooter>
-                                            <DialogClose as-child><Button type="button" variant="ghost">Batal</Button></DialogClose>
-                                            <Button type="submit" :disabled="renameForm.processing">Simpan</Button>
+                                            <DialogClose as-child
+                                                ><Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    >Batal</Button
+                                                ></DialogClose
+                                            >
+                                            <Button
+                                                type="submit"
+                                                :disabled="
+                                                    renameForm.processing
+                                                "
+                                                >Simpan</Button
+                                            >
                                         </DialogFooter>
                                     </form>
                                 </DialogContent>
@@ -409,24 +580,49 @@ const searchEmpty = computed(() => props.files.length === 0 && props.search !== 
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        class="text-red-600 hover:text-red-600 h-8 w-8"
+                                        class="h-11 w-11 text-red-600 hover:text-red-600"
                                         aria-label="Hapus folder"
-                                        @click="deletingFolder = { id: item.id, name: item.name }"
+                                        @click="
+                                            deletingFolder = {
+                                                id: item.id,
+                                                name: item.name,
+                                            }
+                                        "
                                     >
                                         <Trash2 class="h-4 w-4" />
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent>
-                                    <form class="space-y-6" @submit.prevent="submitDeleteFolder">
+                                    <form
+                                        class="space-y-6"
+                                        @submit.prevent="submitDeleteFolder"
+                                    >
                                         <DialogHeader>
-                                            <DialogTitle>Hapus folder {{ deletingFolder?.name }}?</DialogTitle>
+                                            <DialogTitle
+                                                >Hapus folder
+                                                {{
+                                                    deletingFolder?.name
+                                                }}?</DialogTitle
+                                            >
                                             <DialogDescription>
-                                                Folder harus kosong (tanpa file dan subfolder) sebelum bisa dihapus.
+                                                Folder harus kosong (tanpa file
+                                                dan subfolder) sebelum bisa
+                                                dihapus.
                                             </DialogDescription>
                                         </DialogHeader>
                                         <DialogFooter>
-                                            <DialogClose as-child><Button type="button" variant="ghost">Batal</Button></DialogClose>
-                                            <Button type="submit" variant="destructive">Hapus</Button>
+                                            <DialogClose as-child
+                                                ><Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    >Batal</Button
+                                                ></DialogClose
+                                            >
+                                            <Button
+                                                type="submit"
+                                                variant="destructive"
+                                                >Hapus</Button
+                                            >
                                         </DialogFooter>
                                     </form>
                                 </DialogContent>
@@ -439,15 +635,29 @@ const searchEmpty = computed(() => props.files.length === 0 && props.search !== 
                         :key="`file-${file.id}`"
                         class="hover:bg-muted/50 flex items-center gap-3 px-4 py-2.5"
                     >
-                        <FileIcon class="text-muted-foreground h-4 w-4 shrink-0" aria-hidden="true" />
-                        <span class="min-w-0 flex-1 truncate text-sm" :title="file.name">
+                        <FileIcon
+                            class="text-muted-foreground h-4 w-4 shrink-0"
+                            aria-hidden="true"
+                        />
+                        <span
+                            class="min-w-0 flex-1 truncate text-sm"
+                            :title="file.name"
+                        >
                             {{ file.name }}
-                            <span v-if="!file.accessible" class="text-red-600 dark:text-red-400">(akun diputus)</span>
+                            <span
+                                v-if="!file.accessible"
+                                class="text-red-600 dark:text-red-400"
+                                >(akun diputus)</span
+                            >
                         </span>
-                        <span class="text-muted-foreground hidden w-20 text-right text-xs sm:block">
+                        <span
+                            class="text-muted-foreground hidden w-20 text-right text-xs sm:block"
+                        >
                             {{ formatBytes(file.size) }}
                         </span>
-                        <span class="text-muted-foreground hidden w-48 truncate text-xs lg:block">
+                        <span
+                            class="text-muted-foreground hidden w-48 truncate text-xs lg:block"
+                        >
                             {{ file.account_label }}
                         </span>
                         <div class="flex shrink-0 items-center gap-1">
@@ -455,10 +665,13 @@ const searchEmpty = computed(() => props.files.length === 0 && props.search !== 
                                 v-if="file.accessible"
                                 variant="ghost"
                                 size="icon"
-                                class="h-8 w-8"
+                                class="h-11 w-11"
                                 as-child
                             >
-                                <a :href="`/files/${file.id}/download`" :aria-label="`Unduh ${file.name}`">
+                                <a
+                                    :href="`/files/${file.id}/download`"
+                                    :aria-label="`Unduh ${file.name}`"
+                                >
                                     <Download class="h-4 w-4" />
                                 </a>
                             </Button>
@@ -475,7 +688,7 @@ const searchEmpty = computed(() => props.files.length === 0 && props.search !== 
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        class="h-8 w-8"
+                                        class="h-11 w-11"
                                         :aria-label="`Pindahkan ${file.name}`"
                                         @click="openMove(file)"
                                     >
@@ -483,19 +696,35 @@ const searchEmpty = computed(() => props.files.length === 0 && props.search !== 
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent>
-                                    <form class="space-y-6" @submit.prevent="submitMove">
+                                    <form
+                                        class="space-y-6"
+                                        @submit.prevent="submitMove"
+                                    >
                                         <DialogHeader>
-                                            <DialogTitle>Pindahkan {{ movingFile?.name }}</DialogTitle>
+                                            <DialogTitle
+                                                >Pindahkan
+                                                {{
+                                                    movingFile?.name
+                                                }}</DialogTitle
+                                            >
                                             <DialogDescription>
-                                                Hanya lokasi virtual yang berubah, file tidak diunggah ulang.
+                                                Hanya lokasi virtual yang
+                                                berubah, file tidak diunggah
+                                                ulang.
                                             </DialogDescription>
                                         </DialogHeader>
                                         <div class="grid gap-2">
-                                            <Label for="move-target">Folder tujuan</Label>
+                                            <Label for="move-target"
+                                                >Folder tujuan</Label
+                                            >
                                             <Select v-model="moveTarget">
-                                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                                <SelectTrigger
+                                                    ><SelectValue
+                                                /></SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="root">Root</SelectItem>
+                                                    <SelectItem value="root"
+                                                        >Root</SelectItem
+                                                    >
                                                     <SelectItem
                                                         v-for="f in allFolders"
                                                         :key="f.id"
@@ -507,8 +736,16 @@ const searchEmpty = computed(() => props.files.length === 0 && props.search !== 
                                             </Select>
                                         </div>
                                         <DialogFooter>
-                                            <DialogClose as-child><Button type="button" variant="ghost">Batal</Button></DialogClose>
-                                            <Button type="submit">Pindahkan</Button>
+                                            <DialogClose as-child
+                                                ><Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    >Batal</Button
+                                                ></DialogClose
+                                            >
+                                            <Button type="submit"
+                                                >Pindahkan</Button
+                                            >
                                         </DialogFooter>
                                     </form>
                                 </DialogContent>
@@ -519,24 +756,49 @@ const searchEmpty = computed(() => props.files.length === 0 && props.search !== 
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        class="text-red-600 hover:text-red-600 h-8 w-8"
+                                        class="h-11 w-11 text-red-600 hover:text-red-600"
                                         :aria-label="`Hapus ${file.name}`"
-                                        @click="deletingFile = { id: file.id, name: file.name }"
+                                        @click="
+                                            deletingFile = {
+                                                id: file.id,
+                                                name: file.name,
+                                            }
+                                        "
                                     >
                                         <Trash2 class="h-4 w-4" />
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent>
-                                    <form class="space-y-6" @submit.prevent="submitDelete">
+                                    <form
+                                        class="space-y-6"
+                                        @submit.prevent="submitDelete"
+                                    >
                                         <DialogHeader>
-                                            <DialogTitle>Hapus {{ deletingFile?.name }}?</DialogTitle>
+                                            <DialogTitle
+                                                >Hapus
+                                                {{
+                                                    deletingFile?.name
+                                                }}?</DialogTitle
+                                            >
                                             <DialogDescription>
-                                                File dihapus dari provider asli dan dari daftar. Tidak bisa dibatalkan.
+                                                File dihapus dari provider asli
+                                                dan dari daftar. Tidak bisa
+                                                dibatalkan.
                                             </DialogDescription>
                                         </DialogHeader>
                                         <DialogFooter>
-                                            <DialogClose as-child><Button type="button" variant="ghost">Batal</Button></DialogClose>
-                                            <Button type="submit" variant="destructive">Hapus</Button>
+                                            <DialogClose as-child
+                                                ><Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    >Batal</Button
+                                                ></DialogClose
+                                            >
+                                            <Button
+                                                type="submit"
+                                                variant="destructive"
+                                                >Hapus</Button
+                                            >
                                         </DialogFooter>
                                     </form>
                                 </DialogContent>

@@ -16,7 +16,8 @@ const percent = computed(() => {
 });
 
 const nearlyFull = computed(
-    () => percent.value !== null && percent.value >= (props.warningPercent ?? 90),
+    () =>
+        percent.value !== null && percent.value >= (props.warningPercent ?? 90),
 );
 
 const label = computed(() => {
@@ -33,7 +34,9 @@ const label = computed(() => {
             <div
                 v-if="percent !== null"
                 class="h-full rounded-full transition-[width] duration-500"
-                :class="nearlyFull ? 'bg-red-500' : 'bg-teal-600 dark:bg-teal-400'"
+                :class="
+                    nearlyFull ? 'bg-red-500' : 'bg-teal-600 dark:bg-teal-400'
+                "
                 :style="{ width: `${percent}%` }"
                 role="progressbar"
                 :aria-valuenow="Math.round(percent)"

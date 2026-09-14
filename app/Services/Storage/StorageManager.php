@@ -2,9 +2,9 @@
 
 namespace App\Services\Storage;
 
+use App\Contracts\StorageDriverInterface;
 use App\Models\StorageAccount;
 use App\Models\User;
-use App\Services\Storage\Drivers\TelegramDriver;
 use RuntimeException;
 
 class StorageManager
@@ -12,7 +12,7 @@ class StorageManager
     /**
      * Resolve the driver instance for an account.
      */
-    public function driver(StorageAccount $account): \App\Contracts\StorageDriverInterface
+    public function driver(StorageAccount $account): StorageDriverInterface
     {
         return app($account->provider->driver_class);
     }

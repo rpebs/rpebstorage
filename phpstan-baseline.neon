@@ -1,0 +1,817 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Access to private constant REPLY_TTL of class App\\Services\\Telegram\\TelegramRpc\.$#'
+			identifier: classConstant.private
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Cannot assign offset ''channel_id'' to array\|string\.$#'
+			identifier: offsetAssign.dimType
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\TelegramListenCommand\:\:bucketPeer\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\TelegramListenCommand\:\:completeLogin\(\) has parameter \$request with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\TelegramListenCommand\:\:completeLogin\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\TelegramListenCommand\:\:createBucket\(\) has parameter \$request with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\TelegramListenCommand\:\:createBucket\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\TelegramListenCommand\:\:delete\(\) has parameter \$request with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\TelegramListenCommand\:\:delete\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\TelegramListenCommand\:\:disconnect\(\) has parameter \$request with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\TelegramListenCommand\:\:disconnect\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\TelegramListenCommand\:\:download\(\) has parameter \$request with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\TelegramListenCommand\:\:download\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\TelegramListenCommand\:\:fetchMedia\(\) has parameter \$peer with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\TelegramListenCommand\:\:requestCode\(\) has parameter \$request with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\TelegramListenCommand\:\:requestCode\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\TelegramListenCommand\:\:safelyHandle\(\) has parameter \$request with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\TelegramListenCommand\:\:safelyHandle\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\TelegramListenCommand\:\:upload\(\) has parameter \$request with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\TelegramListenCommand\:\:upload\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Offset ''channel_hash'' on array\{\}\|string in isset\(\) does not exist\.$#'
+			identifier: isset.offset
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Offset ''channel_id'' on array\{\}\|string in isset\(\) does not exist\.$#'
+			identifier: isset.offset
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Parameter \#1 \$broadcast of method danog\\MadelineProto\\Namespace\\Channels\:\:createChannel\(\) expects bool\|null, array\<string, string\|false\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Parameter \#1 \$stream of function fclose expects resource, resource\|false given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Parameter \#1 \$stream of function fread expects resource, resource\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Parameter \#1 \$stream of function fwrite expects resource, resource\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Parameter \#2 \$length of function fread expects int\<1, max\>, int\<min, 1048576\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Property App\\Models\\StorageAccount\:\:\$meta \(string\|null\) does not accept array\<string, int\|string\>\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^While loop condition is always true\.$#'
+			identifier: while.alwaysTrue
+			count: 1
+			path: app/Console/Commands/TelegramListenCommand.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Auth\\ProviderOAuthController\:\:callback\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/Auth/ProviderOAuthController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Auth\\ProviderOAuthController\:\:redirect\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/Auth/ProviderOAuthController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:label\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Cannot call method lt\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DashboardController\:\:index\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{id\: int, alias\: string, provider_label\: mixed, quota_total\: int\<0, max\>\|null, quota_used\: int\<0, max\>, nearly_full\: bool\}, Closure\(App\\Models\\StorageAccount\)\: array\{id\: int, alias\: string, provider_label\: mixed, quota_total\: int\<0, max\>\|null, quota_used\: int\<0, max\>, nearly_full\: bool\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:filter\(\) expects \(callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: bool\)\|null, Closure\(App\\Models\\StorageAccount\)\: bool given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Parameter \#1 \$key of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:contains\(\) expects \(callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: bool\)\|Illuminate\\Database\\Eloquent\\Model\|int\|string, Closure\(App\\Models\\StorageAccount\)\: bool given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\VirtualFolder\|Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\), App\\Models\\VirtualFolder\>\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/FileManagerController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$alias\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/FileManagerController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$provider\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/FileManagerController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/FileManagerController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:label\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/FileManagerController.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Http/Controllers/FileManagerController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FileManagerController\:\:destroy\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/FileManagerController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FileManagerController\:\:destroyFolder\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/FileManagerController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FileManagerController\:\:download\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/FileManagerController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FileManagerController\:\:index\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/FileManagerController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FileManagerController\:\:jobs\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/FileManagerController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FileManagerController\:\:move\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/FileManagerController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FileManagerController\:\:storeFolder\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/FileManagerController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FileManagerController\:\:updateFolder\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/FileManagerController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FileManagerController\:\:upload\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/FileManagerController.php
+
+		-
+			message: '#^Parameter \#1 \$account of method App\\Contracts\\StorageDriverInterface\:\:delete\(\) expects App\\Models\\StorageAccount, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/FileManagerController.php
+
+		-
+			message: '#^Parameter \#1 \$account of method App\\Contracts\\StorageDriverInterface\:\:download\(\) expects App\\Models\\StorageAccount, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/FileManagerController.php
+
+		-
+			message: '#^Parameter \#1 \$account of method App\\Services\\Storage\\StorageManager\:\:driver\(\) expects App\\Models\\StorageAccount, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Http/Controllers/FileManagerController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\FileJob\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/FileManagerController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{id\: int, label\: non\-falsy\-string, unlimited\: bool\}, Closure\(App\\Models\\StorageAccount\)\: array\{id\: int, label\: non\-falsy\-string, unlimited\: bool\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/FileManagerController.php
+
+		-
+			message: '#^Parameter \#7 \$autoLastModified of class Symfony\\Component\\HttpFoundation\\BinaryFileResponse constructor expects bool, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/FileManagerController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\FileJob\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/FileManagerController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/StorageAccountController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:label\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/StorageAccountController.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Http/Controllers/StorageAccountController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\StorageAccountController\:\:destroy\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/StorageAccountController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\StorageAccountController\:\:index\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/StorageAccountController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\StorageAccountController\:\:update\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/StorageAccountController.php
+
+		-
+			message: '#^Offset ''connecting'' on string\|null on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Http/Controllers/StorageAccountController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/StorageAccountController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{id\: int, alias\: string, provider\: mixed, provider_label\: mixed, status\: mixed, quota_total\: int\<0, max\>\|null, quota_used\: int\<0, max\>, file_count\: int\<0, max\>\}, Closure\(App\\Models\\StorageAccount\)\: array\{id\: int, alias\: string, provider\: mixed, provider_label\: mixed, status\: mixed, quota_total\: int\<0, max\>\|null, quota_used\: int\<0, max\>, file_count\: int\<0, max\>\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/StorageAccountController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:reject\(\) expects bool\|\(callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: bool\)\|Illuminate\\Database\\Eloquent\\Model, Closure\(App\\Models\\StorageAccount\)\: false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/StorageAccountController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/StorageAccountController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\StorageAccount\|Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\), App\\Models\\StorageAccount\>\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/TelegramAuthController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\StorageAccount\|Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\), App\\Models\\StorageAccount\>\:\:forceFill\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/TelegramAuthController.php
+
+		-
+			message: '#^Call to method getMessage\(\) on an unknown class App\\Jobs\\Throwable\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Jobs/DownloadFileJob.php
+
+		-
+			message: '#^Parameter \#1 \$account of method App\\Contracts\\StorageDriverInterface\:\:download\(\) expects App\\Models\\StorageAccount, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Jobs/DownloadFileJob.php
+
+		-
+			message: '#^Parameter \#1 \$account of method App\\Services\\Storage\\StorageManager\:\:driver\(\) expects App\\Models\\StorageAccount, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Jobs/DownloadFileJob.php
+
+		-
+			message: '#^Parameter \$e of method App\\Jobs\\DownloadFileJob\:\:failed\(\) has invalid type App\\Jobs\\Throwable\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Jobs/DownloadFileJob.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Jobs/RefreshProviderTokenJob.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Jobs/SyncStorageQuotaJob.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Services\\Storage\\StorageManager\:\:pickBestAccount\(\) expects App\\Models\\User, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Jobs/UploadFileJob.php
+
+		-
+			message: '#^Method App\\Models\\FileChunk\:\:file\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/FileChunk.php
+
+		-
+			message: '#^Method App\\Models\\FileJob\:\:account\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/FileJob.php
+
+		-
+			message: '#^Method App\\Models\\FileJob\:\:folder\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/FileJob.php
+
+		-
+			message: '#^Method App\\Models\\FileJob\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/FileJob.php
+
+		-
+			message: '#^Method App\\Models\\StorageAccount\:\:files\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/StorageAccount.php
+
+		-
+			message: '#^Method App\\Models\\StorageAccount\:\:provider\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/StorageAccount.php
+
+		-
+			message: '#^Method App\\Models\\StorageAccount\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/StorageAccount.php
+
+		-
+			message: '#^Method App\\Models\\StorageProvider\:\:accounts\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/StorageProvider.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:fileJobs\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:storageAccounts\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:virtualFiles\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:virtualFolders\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/VirtualFile.php
+
+		-
+			message: '#^Method App\\Models\\VirtualFile\:\:account\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/VirtualFile.php
+
+		-
+			message: '#^Method App\\Models\\VirtualFile\:\:chunks\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/VirtualFile.php
+
+		-
+			message: '#^Method App\\Models\\VirtualFile\:\:folder\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/VirtualFile.php
+
+		-
+			message: '#^Method App\\Models\\VirtualFile\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/VirtualFile.php
+
+		-
+			message: '#^Method App\\Models\\VirtualFolder\:\:children\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/VirtualFolder.php
+
+		-
+			message: '#^Method App\\Models\\VirtualFolder\:\:files\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/VirtualFolder.php
+
+		-
+			message: '#^Method App\\Models\\VirtualFolder\:\:parent\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/VirtualFolder.php
+
+		-
+			message: '#^Method App\\Models\\VirtualFolder\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/VirtualFolder.php
+
+		-
+			message: '#^Offset ''access_token'' does not exist on string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: app/Services/Storage/Drivers/BaseCloudDriver.php
+
+		-
+			message: '#^Method App\\Services\\Storage\\Drivers\\DropboxDriver\:\:simpleUpload\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Services/Storage/Drivers/DropboxDriver.php
+
+		-
+			message: '#^Parameter \#1 \$content of method Illuminate\\Http\\Client\\PendingRequest\<false\>\:\:withBody\(\) expects Psr\\Http\\Message\\StreamInterface\|string, resource\|false given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Services/Storage/Drivers/DropboxDriver.php
+
+		-
+			message: '#^Parameter \#1 \$content of method Illuminate\\Http\\Client\\PendingRequest\<false\>\:\:withBody\(\) expects Psr\\Http\\Message\\StreamInterface\|string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Storage/Drivers/DropboxDriver.php
+
+		-
+			message: '#^Parameter \#1 \$stream of function fclose expects resource, resource\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Storage/Drivers/DropboxDriver.php
+
+		-
+			message: '#^Parameter \#1 \$stream of function fread expects resource, resource\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Storage/Drivers/DropboxDriver.php
+
+		-
+			message: '#^Parameter \#1 \$stream of function fseek expects resource, resource\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Storage/Drivers/DropboxDriver.php
+
+		-
+			message: '#^Parameter \#1 \$string of function strlen expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Services/Storage/Drivers/DropboxDriver.php
+
+		-
+			message: '#^Parameter \#2 \$length of function fread expects int\<1, max\>, int\<min, 104857600\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Storage/Drivers/DropboxDriver.php
+
+		-
+			message: '#^Parameter \#1 \$content of method Illuminate\\Http\\Client\\PendingRequest\<false\>\:\:withBody\(\) expects Psr\\Http\\Message\\StreamInterface\|string, resource\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Storage/Drivers/GoogleDriveDriver.php
+
+		-
+			message: '#^Parameter \#1 \$content of method Illuminate\\Http\\Client\\PendingRequest\<false\>\:\:withBody\(\) expects Psr\\Http\\Message\\StreamInterface\|string, resource\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Storage/Drivers/OneDriveDriver.php
+
+		-
+			message: '#^Parameter \#1 \$content of method Illuminate\\Http\\Client\\PendingRequest\<false\>\:\:withBody\(\) expects Psr\\Http\\Message\\StreamInterface\|string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Storage/Drivers/OneDriveDriver.php
+
+		-
+			message: '#^Parameter \#1 \$stream of function fclose expects resource, resource\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Storage/Drivers/OneDriveDriver.php
+
+		-
+			message: '#^Parameter \#1 \$stream of function fread expects resource, resource\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Storage/Drivers/OneDriveDriver.php
+
+		-
+			message: '#^Parameter \#1 \$string of function strlen expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 3
+			path: app/Services/Storage/Drivers/OneDriveDriver.php
+
+		-
+			message: '#^Parameter \#2 \$length of function fread expects int\<1, max\>, int\<min, 10485760\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Storage/Drivers/OneDriveDriver.php
+
+		-
+			message: '#^Parameter \#2 \$size of class App\\Values\\UploadResult constructor expects int, int\<0, max\>\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Storage/Drivers/TelegramDriver.php
+
+		-
+			message: '#^Call to function is_array\(\) with string\|null will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: app/Services/Storage/OAuth/ProviderOAuth.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: app/Services/Storage/OAuth/ProviderOAuth.php
+
+		-
+			message: '#^Method App\\Services\\Storage\\OAuth\\ProviderOAuth\:\:config\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Services/Storage/OAuth/ProviderOAuth.php
+
+		-
+			message: '#^Method App\\Services\\Storage\\OAuth\\ProviderOAuth\:\:providerNames\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Services/Storage/OAuth/ProviderOAuth.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Services/Storage/OAuth/ProviderOAuth.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$driver_class\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Storage/StorageManager.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:remainingQuota\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Services/Storage/StorageManager.php
+
+		-
+			message: '#^Method App\\Services\\Storage\\StorageManager\:\:pickBestAccount\(\) should return App\\Models\\StorageAccount but returns Illuminate\\Database\\Eloquent\\Model\.$#'
+			identifier: return.type
+			count: 4
+			path: app/Services/Storage/StorageManager.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:filter\(\) expects \(callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: bool\)\|null, Closure\(App\\Models\\StorageAccount\)\: bool given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Storage/StorageManager.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:first\(\) expects \(callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: bool\)\|null, Closure\(App\\Models\\StorageAccount\)\: bool given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Storage/StorageManager.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:sortByDesc\(\) expects array\<array\{string, ''asc''\|''desc''\|SortDirection\}\|\(callable\(Illuminate\\Database\\Eloquent\\Model, Illuminate\\Database\\Eloquent\\Model\)\: mixed\)\|\(callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: mixed\)\|string\>\|\(callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: mixed\)\|int\|string, Closure\(App\\Models\\StorageAccount\)\: \(int\|null\) given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Storage/StorageManager.php
+
+		-
+			message: '#^Constant App\\Services\\Telegram\\TelegramRpc\:\:REPLY_TTL is unused\.$#'
+			identifier: classConstant.unused
+			count: 1
+			path: app/Services/Telegram/TelegramRpc.php
+
+		-
+			message: '#^Method App\\Services\\Telegram\\TelegramRpc\:\:call\(\) has parameter \$payload with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Services/Telegram/TelegramRpc.php
+
+		-
+			message: '#^Parameter \#1 \$title of static method Illuminate\\Support\\Str\:\:slug\(\) expects string, bool\|string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: config/horizon.php
+
+		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 3
+			path: database/seeders/DatabaseSeeder.php
+
+		-
+			message: '#^Parameter \#1 \$value of function bcrypt expects string, bool\|string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: database/seeders/DatabaseSeeder.php

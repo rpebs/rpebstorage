@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\FileJob;
 use App\Models\StorageAccount;
 use App\Services\Storage\Concerns\HandlesChunking;
+use App\Services\Storage\StorageManager;
 use App\Services\Telegram\TelegramRpc;
 use danog\MadelineProto\API;
 use danog\MadelineProto\LocalFile;
@@ -12,7 +13,9 @@ use danog\MadelineProto\RPCErrorException;
 use danog\MadelineProto\Settings;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Redis;
+use Predis\ClientInterface;
 use Throwable;
+
 use function Amp\async;
 
 /**
@@ -31,7 +34,7 @@ class TelegramListenCommand extends Command
     /** @var array<int, API> */
     private array $instances = [];
 
-    private \Predis\ClientInterface $redis;
+    private ClientInterface $redis;
 
     public function handle(): int
     {
@@ -395,8 +398,8 @@ class TelegramListenCommand extends Command
         return $dir."/{$accountId}.madeline";
     }
 
-    private function manager(): \App\Services\Storage\StorageManager
+    private function manager(): StorageManager
     {
-        return app(\App\Services\Storage\StorageManager::class);
+        return app(StorageManager::class);
     }
 }
