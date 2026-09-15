@@ -61,6 +61,15 @@ return [
         'quality' => 80,
     ],
 
+    /*
+    | Preview cache directory for streaming video, audio, pdf, and images.
+    */
+    'preview_cache' => [
+        'disk' => 'local',
+        'path' => 'preview_cache',
+        'max_age_hours' => 24,
+    ],
+
     // pickBestAccount: an unlimited account is only used when no quota-limited
     // account has at least this many bytes free.
     'unlimited_fallback_threshold' => 1024 * 1024 * 1024,

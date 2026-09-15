@@ -10,6 +10,7 @@ use App\Models\FileJob;
 use App\Models\StorageAccount;
 use App\Models\VirtualFile;
 use App\Models\VirtualFolder;
+use App\Services\Storage\PreviewService;
 use App\Services\Storage\StorageManager;
 use App\Services\Storage\ThumbnailService;
 use Illuminate\Http\Request;
@@ -22,6 +23,7 @@ class FileManagerController extends Controller
     public function __construct(
         private StorageManager $manager,
         private ThumbnailService $thumbnailService,
+        private PreviewService $previewService,
     ) {}
 
     public function index(Request $request)
@@ -99,6 +101,9 @@ class FileManagerController extends Controller
                 'updated_at' => $f->updated_at?->toISOString(),
                 'has_thumbnail' => $this->thumbnailService->supports($f),
                 'thumbnail_url' => $this->thumbnailService->supports($f) ? route('files.thumbnail', $f) : null,
+                'is_previewable' => $this->previewService->supports($f),
+                'preview_type' => $this->previewService->previewType($f),
+                'preview_url' => route('files.preview', $f),
             ]),
             'allFolders' => $allFolders->values(),
             'accounts' => $accounts,
@@ -238,6 +243,81 @@ class FileManagerController extends Controller
         return response()->json(['jobs' => $jobs]);
     }
 
+    public function previewStatus(Request $request, VirtualFile $file)
+    {
+        abort_unless($file->user_id === $request->user()->id, 404);
+
+        $supported = $this->previewService->supports($file);
+        $type = $this->previewService->previewType($file);
+        $ready = $this->previewService->isReady($file);
+
+        if (! $ready && $file->is_chunked && $file->isAccessible()) {
+            DownloadFileJob::dispatch($file->id);
+        }
+
+        return response()->json([
+            'supported' => $supported,
+            'type' => $type,
+            'ready' => $ready,
+            'mime_type' => $file->mime_type,
+            'size' => $file->size,
+            'name' => $file->name,
+            'preview_url' => route('files.preview', $file),
+        ]);
+    }
+
+    public function preview(Request $request, VirtualFile $file): \Symfony\Component\HttpFoundation\Response
+    {
+        abort_unless($file->user_id === $request->user()->id, 404);
+
+        if (! $file->isAccessible()) {
+            abort(403, 'File tersimpan di akun yang sudah diputuskan.');
+        }
+
+        if (! $this->previewService->supports($file)) {
+            abort(415, 'Tipe berkas tidak mendukung pratinjau langsung.');
+        }
+
+        $result = $this->previewService->prepare($file);
+
+        if ($result === 'pending') {
+            return response()->json([
+                'status' => 'pending',
+                'message' => 'Berkas sedang disiapkan dari cloud storage.',
+            ], 202);
+        }
+
+        if ($result === false || ! file_exists($result)) {
+            abort(500, 'Gagal menyiapkan berkas untuk pratinjau.');
+        }
+
+        $contentType = $this->previewService->resolveMimeType($file, $result);
+        $lastModified = filemtime($result) ?: time();
+        $etag = '"' . md5($file->id . '-' . $lastModified . '-' . $file->size) . '"';
+
+        if ($request->header('If-None-Match') === $etag) {
+            return response('', 304, [
+                'ETag' => $etag,
+                'Cache-Control' => 'private, max-age=3600',
+            ]);
+        }
+
+        $safeFilename = str_replace('"', '', $file->name);
+
+        $response = response()->file($result, [
+            'Content-Type' => $contentType,
+            'Content-Disposition' => 'inline; filename="' . $safeFilename . '"',
+            'Accept-Ranges' => 'bytes',
+            'ETag' => $etag,
+            'Last-Modified' => gmdate('D, d M Y H:i:s', $lastModified) . ' GMT',
+        ]);
+
+        $response->setPrivate();
+        $response->setMaxAge(3600);
+
+        return $response;
+    }
+
     public function download(Request $request, VirtualFile $file)
     {
         abort_unless($file->user_id === $request->user()->id, 404);
@@ -358,6 +438,7 @@ class FileManagerController extends Controller
         }
 
         $this->thumbnailService->deleteThumbnail($file);
+        $this->previewService->deleteCache($file);
 
         $this->manager->driver($account)->delete($account, $file->remote_ref);
 

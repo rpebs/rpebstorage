@@ -22,6 +22,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('files/folders/{folder}', [FileManagerController::class, 'destroyFolder'])->name('files.folders.destroy');
     Route::post('files/upload', [FileManagerController::class, 'upload'])->name('files.upload');
     Route::get('files/jobs', [FileManagerController::class, 'jobs'])->name('files.jobs');
+    Route::get('files/{file}/preview', [FileManagerController::class, 'preview'])->name('files.preview');
+    Route::get('files/{file}/preview-status', [FileManagerController::class, 'previewStatus'])->name('files.preview.status');
     Route::get('files/{file}/download', [FileManagerController::class, 'download'])->name('files.download');
     Route::get('files/{file}/thumbnail', [FileManagerController::class, 'thumbnail'])->name('files.thumbnail');
     Route::patch('files/{file}/move', [FileManagerController::class, 'move'])->name('files.move');

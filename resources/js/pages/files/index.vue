@@ -8,6 +8,7 @@ import {
     ArrowUpDown,
     ChevronRight,
     Download,
+    Eye,
     File as FileIcon,
     FileArchive,
     FileAudio,
@@ -29,6 +30,7 @@ import {
     Upload,
     X,
 } from '@lucide/vue';
+import FilePreviewModal from '@/components/FilePreviewModal.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -78,6 +80,9 @@ interface FileItem {
     updated_at?: string | null;
     has_thumbnail?: boolean;
     thumbnail_url?: string | null;
+    is_previewable?: boolean;
+    preview_type?: string;
+    preview_url?: string | null;
 }
 
 const props = defineProps<{
@@ -136,7 +141,11 @@ function onThumbnailError(id: number): void {
 }
 
 function hasValidThumbnail(file: FileItem): boolean {
-    return Boolean(file.has_thumbnail && file.thumbnail_url && !failedThumbnails.value[file.id]);
+    return Boolean(
+        file.has_thumbnail &&
+        file.thumbnail_url &&
+        !failedThumbnails.value[file.id],
+    );
 }
 
 const {
@@ -316,6 +325,16 @@ function submitDelete(): void {
             deletingFile.value = null;
         },
     });
+}
+
+// File Preview Modal State
+const previewFile = ref<FileItem | null>(null);
+const previewOpen = ref(false);
+
+function openPreview(file: FileItem): void {
+    if (!file.accessible) return;
+    previewFile.value = file;
+    previewOpen.value = true;
 }
 
 // Helpers
@@ -1151,17 +1170,35 @@ const searchEmpty = computed(
                                     <div
                                         class="flex min-w-0 items-center gap-2.5"
                                     >
-                                        <template v-if="hasValidThumbnail(file)">
-                                            <img
-                                                :src="file.thumbnail_url!"
-                                                :alt="file.name"
-                                                loading="lazy"
-                                                class="h-7 w-7 shrink-0 rounded object-cover border border-border/60 bg-muted/40"
-                                                @error="onThumbnailError(file.id)"
-                                            />
+                                        <template
+                                            v-if="hasValidThumbnail(file)"
+                                        >
+                                            <button
+                                                type="button"
+                                                class="border-border/60 bg-muted/40 h-7 w-7 shrink-0 cursor-pointer overflow-hidden rounded border transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-teal-500"
+                                                :aria-label="`Pratinjau ${file.name}`"
+                                                @click="openPreview(file)"
+                                            >
+                                                <img
+                                                    :src="file.thumbnail_url!"
+                                                    :alt="file.name"
+                                                    loading="lazy"
+                                                    class="h-full w-full object-cover"
+                                                    @error="
+                                                        onThumbnailError(
+                                                            file.id,
+                                                        )
+                                                    "
+                                                />
+                                            </button>
                                         </template>
                                         <template v-else>
-                                            <div class="flex h-7 w-7 shrink-0 items-center justify-center">
+                                            <button
+                                                type="button"
+                                                class="hover:bg-muted flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded transition-colors focus-visible:ring-2 focus-visible:ring-teal-500"
+                                                :aria-label="`Pratinjau ${file.name}`"
+                                                @click="openPreview(file)"
+                                            >
                                                 <component
                                                     :is="
                                                         getFileInfo(
@@ -1177,14 +1214,16 @@ const searchEmpty = computed(
                                                         ).iconClass
                                                     "
                                                 />
-                                            </div>
+                                            </button>
                                         </template>
-                                        <span
-                                            class="text-foreground truncate font-medium"
+                                        <button
+                                            type="button"
+                                            class="text-foreground cursor-pointer truncate text-left font-medium transition-colors hover:text-teal-600 focus-visible:underline focus-visible:outline-hidden dark:hover:text-teal-400"
                                             :title="file.name"
+                                            @click="openPreview(file)"
                                         >
                                             {{ file.name }}
-                                        </span>
+                                        </button>
                                         <Badge
                                             v-if="file.is_chunked"
                                             variant="outline"
@@ -1231,6 +1270,20 @@ const searchEmpty = computed(
                                     <div
                                         class="flex items-center justify-end gap-1"
                                     >
+                                        <Button
+                                            v-if="
+                                                file.accessible &&
+                                                file.is_previewable
+                                            "
+                                            variant="ghost"
+                                            size="icon"
+                                            class="text-muted-foreground hover:text-foreground h-8 w-8"
+                                            :aria-label="`Pratinjau ${file.name}`"
+                                            title="Pratinjau berkas"
+                                            @click="openPreview(file)"
+                                        >
+                                            <Eye class="h-3.5 w-3.5" />
+                                        </Button>
                                         <Button
                                             v-if="file.accessible"
                                             variant="ghost"
@@ -1363,7 +1416,12 @@ const searchEmpty = computed(
                         <div
                             v-for="file in sortedFiles"
                             :key="`grid-file-${file.id}`"
-                            class="group bg-card hover:bg-muted/30 relative flex flex-col justify-between rounded-lg border p-3 shadow-2xs transition-all hover:border-teal-500/50"
+                            role="button"
+                            tabindex="0"
+                            class="group bg-card hover:bg-muted/30 relative flex cursor-pointer flex-col justify-between rounded-lg border p-3 shadow-2xs transition-all hover:border-teal-500/50 focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:outline-hidden"
+                            :aria-label="`Pratinjau ${file.name}`"
+                            @click="openPreview(file)"
+                            @keydown.enter="openPreview(file)"
                         >
                             <!-- Visual file type preview box -->
                             <div
@@ -1381,30 +1439,36 @@ const searchEmpty = computed(
                                 <template v-else>
                                     <component
                                         :is="
-                                            getFileInfo(file.name, file.mime_type)
-                                                .icon
+                                            getFileInfo(
+                                                file.name,
+                                                file.mime_type,
+                                            ).icon
                                         "
                                         class="h-8 w-8"
                                         :class="
-                                            getFileInfo(file.name, file.mime_type)
-                                                .iconClass
+                                            getFileInfo(
+                                                file.name,
+                                                file.mime_type,
+                                            ).iconClass
                                         "
                                     />
                                     <span
                                         class="text-muted-foreground mt-1 text-[10px] font-medium uppercase"
                                     >
-                                        {{ file.name.split('.').pop() || 'FILE' }}
+                                        {{
+                                            file.name.split('.').pop() || 'FILE'
+                                        }}
                                     </span>
                                 </template>
 
                                 <!-- Action trigger button -->
-                                <div class="absolute top-1 right-1">
+                                <div class="absolute top-1 right-1" @click.stop>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger as-child>
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                class="text-muted-foreground hover:text-foreground h-6 w-6 rounded bg-background/80 backdrop-blur-xs border border-border/30 hover:bg-background"
+                                                class="text-muted-foreground hover:text-foreground bg-background/80 border-border/30 hover:bg-background h-6 w-6 rounded border backdrop-blur-xs"
                                                 :aria-label="`Menu aksi ${file.name}`"
                                             >
                                                 <MoreVertical
@@ -1416,6 +1480,17 @@ const searchEmpty = computed(
                                             align="end"
                                             class="w-36 text-xs"
                                         >
+                                            <DropdownMenuItem
+                                                v-if="
+                                                    file.accessible &&
+                                                    file.is_previewable
+                                                "
+                                                class="flex cursor-pointer items-center gap-2"
+                                                @click.stop="openPreview(file)"
+                                            >
+                                                <Eye class="h-3.5 w-3.5" />
+                                                <span>Pratinjau</span>
+                                            </DropdownMenuItem>
                                             <DropdownMenuItem
                                                 v-if="file.accessible"
                                                 as-child
@@ -1687,5 +1762,8 @@ const searchEmpty = computed(
                 </form>
             </DialogContent>
         </Dialog>
+
+        <!-- File Preview Modal (PDF, Video, Audio, Image, Text) -->
+        <FilePreviewModal v-model:open="previewOpen" :file="previewFile" />
     </div>
 </template>
