@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\JobStatus;
+use App\Jobs\CreateZipArchiveJob;
 use App\Jobs\UploadFileJob;
 use App\Models\FileJob;
 use App\Models\StorageAccount;
@@ -270,5 +271,161 @@ class FileManagerTest extends TestCase
 
         $this->get("/files/{$file->id}/download")->assertNotFound();
         $this->delete("/files/{$file->id}")->assertNotFound();
+    }
+
+    public function test_bulk_move_moves_multiple_files_to_folder(): void
+    {
+        $file1 = $this->uploadViaJob(['original_name' => 'bulk1.txt']);
+        $file2 = $this->uploadViaJob(['original_name' => 'bulk2.txt']);
+
+        $this->post('/files/folders', ['name' => 'BulkTarget'])->assertRedirect();
+        $target = VirtualFolder::where('name', 'BulkTarget')->firstOrFail();
+
+        $response = $this->post('/files/bulk/move', [
+            'file_ids' => [$file1->id, $file2->id],
+            'folder_id' => $target->id,
+        ]);
+
+        $response->assertRedirect();
+        $this->assertSame($target->id, $file1->fresh()->virtual_folder_id);
+        $this->assertSame($target->id, $file2->fresh()->virtual_folder_id);
+    }
+
+    public function test_bulk_move_moves_files_to_root(): void
+    {
+        $this->post('/files/folders', ['name' => 'SourceFolder'])->assertRedirect();
+        $source = VirtualFolder::where('name', 'SourceFolder')->firstOrFail();
+
+        $file1 = $this->uploadViaJob(['original_name' => 'nested1.txt', 'virtual_folder_id' => $source->id]);
+        $file2 = $this->uploadViaJob(['original_name' => 'nested2.txt', 'virtual_folder_id' => $source->id]);
+
+        $response = $this->post('/files/bulk/move', [
+            'file_ids' => [$file1->id, $file2->id],
+            'folder_id' => null,
+        ]);
+
+        $response->assertRedirect();
+        $this->assertNull($file1->fresh()->virtual_folder_id);
+        $this->assertNull($file2->fresh()->virtual_folder_id);
+    }
+
+    public function test_bulk_delete_deletes_remote_copies_and_records(): void
+    {
+        $file1 = $this->uploadViaJob(['original_name' => 'del1.txt']);
+        $file2 = $this->uploadViaJob(['original_name' => 'del2.txt']);
+        $ref1 = $file1->remote_ref;
+        $ref2 = $file2->remote_ref;
+
+        $response = $this->post('/files/bulk/delete', [
+            'file_ids' => [$file1->id, $file2->id],
+        ]);
+
+        $response->assertRedirect();
+        $this->assertModelMissing($file1);
+        $this->assertModelMissing($file2);
+        $this->assertArrayNotHasKey($ref1, FakeDriver::$storage);
+        $this->assertArrayNotHasKey($ref2, FakeDriver::$storage);
+    }
+
+    public function test_bulk_delete_skips_disconnected_account_files(): void
+    {
+        $file1 = $this->uploadViaJob(['original_name' => 'del-active.txt']);
+        $file2 = $this->uploadViaJob(['original_name' => 'del-disc.txt']);
+
+        $this->account->update(['status' => 'disconnected']);
+
+        $response = $this->post('/files/bulk/delete', [
+            'file_ids' => [$file1->id, $file2->id],
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('virtual_files', ['id' => $file1->id]);
+        $this->assertDatabaseHas('virtual_files', ['id' => $file2->id]);
+    }
+
+    public function test_bulk_zip_creates_job_and_dispatches_archive_job(): void
+    {
+        Queue::fake();
+
+        $file1 = $this->uploadViaJob(['original_name' => 'zip1.txt']);
+        $file2 = $this->uploadViaJob(['original_name' => 'zip2.txt']);
+
+        $response = $this->postJson('/files/bulk/zip', [
+            'file_ids' => [$file1->id, $file2->id],
+        ]);
+
+        $response->assertOk()
+            ->assertJsonStructure(['job_id', 'name', 'status', 'progress']);
+
+        Queue::assertPushed(CreateZipArchiveJob::class);
+        $this->assertDatabaseHas('file_jobs', [
+            'user_id' => $this->user->id,
+            'type' => 'zip',
+            'status' => 'pending',
+        ]);
+    }
+
+    public function test_bulk_zip_executes_and_streams_download(): void
+    {
+        $file1 = $this->uploadViaJob(['original_name' => 'doc1.txt']);
+        $file2 = $this->uploadViaJob(['original_name' => 'doc2.txt']);
+
+        // Since QUEUE_CONNECTION=sync, dispatch will run CreateZipArchiveJob immediately
+        $response = $this->postJson('/files/bulk/zip', [
+            'file_ids' => [$file1->id, $file2->id],
+        ]);
+
+        $response->assertOk();
+        $jobId = $response->json('job_id');
+        $this->assertNotNull($jobId);
+
+        $job = FileJob::findOrFail($jobId);
+        $this->assertSame(JobStatus::Done, $job->status);
+        $this->assertSame(100, $job->progress);
+
+        // Check status endpoint
+        $statusResp = $this->getJson("/files/zip/{$job->id}/status");
+        $statusResp->assertOk()
+            ->assertJson([
+                'id' => $job->id,
+                'status' => 'done',
+                'progress' => 100,
+            ]);
+
+        // Download ZIP stream
+        $downloadResp = $this->get("/files/zip/{$job->id}/download");
+        $downloadResp->assertOk();
+        $downloadResp->assertHeader('content-type', 'application/zip');
+    }
+
+    public function test_bulk_endpoints_prevent_unauthorized_access(): void
+    {
+        $file = $this->uploadViaJob(['original_name' => 'secret.txt']);
+
+        $other = User::create([
+            'name' => 'Third',
+            'email' => 'third@test.local',
+            'password' => bcrypt('secret'),
+        ]);
+        $this->actingAs($other);
+
+        // Other user tries to bulk move file
+        $this->post('/files/bulk/move', [
+            'file_ids' => [$file->id],
+            'folder_id' => null,
+        ]);
+        $this->assertNull($file->fresh()->virtual_folder_id);
+
+        // Other user tries to bulk delete file
+        $this->post('/files/bulk/delete', [
+            'file_ids' => [$file->id],
+        ]);
+        $this->assertDatabaseHas('virtual_files', ['id' => $file->id]);
+
+        // Other user tries to bulk zip file
+        $response = $this->postJson('/files/bulk/zip', [
+            'file_ids' => [$file->id],
+        ]);
+        $response->assertStatus(422);
     }
 }

@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Enums\AccountStatus;
 use App\Enums\JobStatus;
+use App\Jobs\CreateZipArchiveJob;
 use App\Jobs\DownloadFileJob;
 use App\Jobs\UploadFileJob;
 use App\Models\FileJob;
+use App\Models\Label;
 use App\Models\StorageAccount;
 use App\Models\VirtualFile;
 use App\Models\VirtualFolder;
@@ -14,7 +16,9 @@ use App\Services\Storage\PreviewService;
 use App\Services\Storage\StorageManager;
 use App\Services\Storage\ThumbnailService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -31,45 +35,105 @@ class FileManagerController extends Controller
         $user = $request->user();
         $folderId = $request->input('folder');
         $search = trim((string) $request->input('q', ''));
+        $filter = $request->input('filter');
+        $labelId = $request->input('label');
+
+        $currentLabel = null;
+        if ($labelId) {
+            $currentLabel = Label::where('user_id', $user->id)->find($labelId);
+        }
 
         $folder = null;
-
-        if ($folderId) {
-            $folder = VirtualFolder::where('user_id', $user->id)->findOrFail($folderId);
-        }
-
         $breadcrumb = [];
-        if ($folder) {
-            $chain = [];
-            $walker = $folder;
-            while ($walker !== null) {
-                $chain[] = ['id' => $walker->id, 'name' => $walker->name];
-                $walker = $walker->parent;
-            }
-            $breadcrumb = array_reverse($chain);
-        }
 
-        if ($search !== '') {
+        if ($filter === 'starred') {
+            $breadcrumb = [
+                ['id' => 'starred', 'name' => 'Favorit'],
+            ];
+
+            $folders = VirtualFolder::where('user_id', $user->id)
+                ->where('is_starred', true)
+                ->with(['labels', 'parent'])
+                ->when($search !== '', fn ($q) => $q->where('name', 'like', "%{$search}%"))
+                ->orderBy('name')
+                ->get();
+
+            $files = VirtualFile::where('user_id', $user->id)
+                ->where('is_starred', true)
+                ->with(['account.provider', 'labels', 'folder'])
+                ->when($search !== '', fn ($q) => $q->where('name', 'like', "%{$search}%"))
+                ->orderBy('name')
+                ->get();
+        } elseif ($currentLabel) {
+            $breadcrumb = [
+                ['id' => 'label-'.$currentLabel->id, 'name' => "Label: {$currentLabel->name}"],
+            ];
+
+            $folders = VirtualFolder::where('user_id', $user->id)
+                ->whereHas('labels', fn ($q) => $q->where('labels.id', $currentLabel->id))
+                ->with(['labels', 'parent'])
+                ->when($search !== '', fn ($q) => $q->where('name', 'like', "%{$search}%"))
+                ->orderBy('name')
+                ->get();
+
+            $files = VirtualFile::where('user_id', $user->id)
+                ->whereHas('labels', fn ($q) => $q->where('labels.id', $currentLabel->id))
+                ->with(['account.provider', 'labels', 'folder'])
+                ->when($search !== '', fn ($q) => $q->where('name', 'like', "%{$search}%"))
+                ->orderBy('name')
+                ->get();
+        } elseif ($search !== '') {
             $files = VirtualFile::where('user_id', $user->id)
                 ->where('name', 'like', "%{$search}%")
-                ->with('account.provider')
+                ->with(['account.provider', 'labels', 'folder'])
                 ->latest()
                 ->limit(50)
                 ->get();
-            $folders = collect();
+            $folders = VirtualFolder::where('user_id', $user->id)
+                ->where('name', 'like', "%{$search}%")
+                ->with(['labels', 'parent'])
+                ->limit(20)
+                ->get();
         } else {
+            if ($folderId) {
+                $folder = VirtualFolder::where('user_id', $user->id)->findOrFail($folderId);
+            }
+
+            if ($folder) {
+                $chain = [];
+                $walker = $folder;
+                while ($walker !== null) {
+                    $chain[] = ['id' => $walker->id, 'name' => $walker->name];
+                    $walker = $walker->parent;
+                }
+                $breadcrumb = array_reverse($chain);
+            }
+
             $folders = VirtualFolder::where('user_id', $user->id)
                 ->where('parent_id', $folder?->id)
+                ->with('labels')
                 ->orderBy('name')
                 ->get();
             $files = VirtualFile::where('user_id', $user->id)
                 ->where('virtual_folder_id', $folder?->id)
-                ->with('account.provider')
+                ->with(['account.provider', 'labels'])
                 ->orderBy('name')
                 ->get();
         }
 
         $allFolders = VirtualFolder::where('user_id', $user->id)->orderBy('name')->get(['id', 'name', 'parent_id']);
+
+        $allLabels = Label::where('user_id', $user->id)
+            ->withCount(['files', 'folders'])
+            ->orderBy('name')
+            ->get()
+            ->map(fn (Label $l) => [
+                'id' => $l->id,
+                'name' => $l->name,
+                'color' => $l->color,
+                'files_count' => $l->files_count,
+                'folders_count' => $l->folders_count,
+            ]);
 
         $accounts = $user->storageAccounts()
             ->where('status', AccountStatus::Active)
@@ -88,6 +152,13 @@ class FileManagerController extends Controller
                 'id' => $f->id,
                 'name' => $f->name,
                 'parent_id' => $f->parent_id,
+                'parent_name' => $f->parent?->name,
+                'is_starred' => (bool) $f->is_starred,
+                'labels' => $f->labels->map(fn (Label $l) => [
+                    'id' => $l->id,
+                    'name' => $l->name,
+                    'color' => $l->color,
+                ])->values(),
                 'updated_at' => $f->updated_at?->toISOString(),
             ]),
             'files' => $files->map(fn (VirtualFile $f) => [
@@ -96,6 +167,14 @@ class FileManagerController extends Controller
                 'size' => $f->size,
                 'mime_type' => $f->mime_type,
                 'is_chunked' => $f->is_chunked,
+                'is_starred' => (bool) $f->is_starred,
+                'virtual_folder_id' => $f->virtual_folder_id,
+                'folder_name' => $f->folder?->name,
+                'labels' => $f->labels->map(fn (Label $l) => [
+                    'id' => $l->id,
+                    'name' => $l->name,
+                    'color' => $l->color,
+                ])->values(),
                 'account_label' => $f->account ? "{$f->account->alias} ({$f->account->provider->label()})" : '',
                 'accessible' => $f->account?->status === AccountStatus::Active,
                 'updated_at' => $f->updated_at?->toISOString(),
@@ -106,6 +185,13 @@ class FileManagerController extends Controller
                 'preview_url' => route('files.preview', $f),
             ]),
             'allFolders' => $allFolders->values(),
+            'allLabels' => $allLabels->values(),
+            'currentFilter' => $filter === 'starred' ? 'starred' : ($currentLabel ? 'label' : 'all'),
+            'currentLabel' => $currentLabel ? [
+                'id' => $currentLabel->id,
+                'name' => $currentLabel->name,
+                'color' => $currentLabel->color,
+            ] : null,
             'accounts' => $accounts,
             'search' => $search,
         ]);
@@ -447,6 +533,341 @@ class FileManagerController extends Controller
         return $this->toast([
             'type' => 'success',
             'message' => "{$file->name} dihapus.",
+        ]);
+    }
+
+    public function bulkMove(Request $request)
+    {
+        $validated = $request->validate([
+            'file_ids' => ['required', 'array', 'min:1'],
+            'file_ids.*' => ['required', 'integer'],
+            'folder_id' => ['nullable', 'integer'],
+        ]);
+
+        $folderId = $validated['folder_id'] ?? null;
+
+        if ($folderId !== null) {
+            VirtualFolder::where('user_id', $request->user()->id)->findOrFail($folderId);
+        }
+
+        $count = VirtualFile::where('user_id', $request->user()->id)
+            ->whereIn('id', $validated['file_ids'])
+            ->update(['virtual_folder_id' => $folderId]);
+
+        return $this->toast([
+            'type' => 'success',
+            'message' => "{$count} berkas berhasil dipindahkan.",
+        ]);
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $validated = $request->validate([
+            'file_ids' => ['required', 'array', 'min:1'],
+            'file_ids.*' => ['required', 'integer'],
+        ]);
+
+        $files = VirtualFile::where('user_id', $request->user()->id)
+            ->whereIn('id', $validated['file_ids'])
+            ->with('account')
+            ->get();
+
+        $deletedCount = 0;
+        $skippedCount = 0;
+
+        foreach ($files as $file) {
+            $account = $file->account;
+
+            if (! $account || $account->status !== AccountStatus::Active) {
+                $skippedCount++;
+                continue;
+            }
+
+            $merged = DownloadFileJob::mergedPath($this->manager, $file);
+            if (file_exists($merged)) {
+                @unlink($merged);
+            }
+
+            $this->thumbnailService->deleteThumbnail($file);
+            $this->previewService->deleteCache($file);
+
+            try {
+                $this->manager->driver($account)->delete($account, $file->remote_ref);
+            } catch (\Throwable $e) {
+                Log::warning("Gagal menghapus berkas remote {$file->id}: {$e->getMessage()}");
+            }
+
+            $file->delete();
+            $deletedCount++;
+        }
+
+        if ($deletedCount === 0 && $skippedCount > 0) {
+            return $this->toast([
+                'type' => 'error',
+                'message' => 'Semua berkas yang dipilih berada di akun yang terputus, tidak dapat dihapus.',
+            ]);
+        }
+
+        if ($skippedCount > 0) {
+            return $this->toast([
+                'type' => 'info',
+                'message' => "{$deletedCount} berkas berhasil dihapus. {$skippedCount} berkas dilewati karena akun terputus.",
+            ]);
+        }
+
+        return $this->toast([
+            'type' => 'success',
+            'message' => "{$deletedCount} berkas berhasil dihapus.",
+        ]);
+    }
+
+    public function bulkZip(Request $request)
+    {
+        $validated = $request->validate([
+            'file_ids' => ['required', 'array', 'min:1'],
+            'file_ids.*' => ['required', 'integer'],
+        ]);
+
+        $files = VirtualFile::where('user_id', $request->user()->id)
+            ->whereIn('id', $validated['file_ids'])
+            ->with('account')
+            ->get();
+
+        $validFiles = $files->filter(fn (VirtualFile $f) => $f->account && $f->account->status === AccountStatus::Active);
+
+        if ($validFiles->isEmpty()) {
+            return response()->json([
+                'message' => 'Tidak ada berkas aktif yang dapat diunduh.',
+            ], 422);
+        }
+
+        $archiveName = 'berkas_' . now()->format('Ymd_His') . '.zip';
+
+        $fileJob = FileJob::create([
+            'user_id' => $request->user()->id,
+            'type' => 'zip',
+            'original_name' => $archiveName,
+            'size' => $validFiles->sum('size'),
+            'mime_type' => 'application/zip',
+            'status' => JobStatus::Pending,
+            'progress' => 0,
+        ]);
+
+        CreateZipArchiveJob::dispatch($fileJob->id, $validFiles->pluck('id')->all());
+
+        $fileJob->refresh();
+
+        return response()->json([
+            'job_id' => $fileJob->id,
+            'name' => $fileJob->original_name,
+            'status' => $fileJob->status->value,
+            'progress' => $fileJob->progress,
+            'download_url' => $fileJob->status === JobStatus::Done ? route('files.zip.download', $fileJob) : null,
+        ]);
+    }
+
+    public function zipStatus(Request $request, FileJob $job)
+    {
+        abort_unless($job->user_id === $request->user()->id, 404);
+        abort_unless($job->type === 'zip', 404);
+
+        return response()->json([
+            'id' => $job->id,
+            'status' => $job->status->value,
+            'progress' => $job->progress,
+            'name' => $job->original_name,
+            'size' => $job->size,
+            'error' => $job->error,
+            'download_url' => $job->status === JobStatus::Done ? route('files.zip.download', $job) : null,
+        ]);
+    }
+
+    public function zipDownload(Request $request, FileJob $job)
+    {
+        abort_unless($job->user_id === $request->user()->id, 404);
+        abort_unless($job->type === 'zip', 404);
+
+        $zipPath = CreateZipArchiveJob::zipPath($this->manager, $job);
+
+        if (! file_exists($zipPath)) {
+            abort(404, 'Berkas ZIP tidak ditemukan atau sudah dibersihkan.');
+        }
+
+        return response()->download($zipPath, $job->original_name)->deleteFileAfterSend(true);
+    }
+
+    public function toggleStarFile(Request $request, VirtualFile $file): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    {
+        abort_unless($file->user_id === $request->user()->id, 404);
+
+        $file->update(['is_starred' => ! $file->is_starred]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'is_starred' => (bool) $file->is_starred,
+                'message' => $file->is_starred ? 'Ditambahkan ke Favorit.' : 'Dihapus dari Favorit.',
+            ]);
+        }
+
+        return back();
+    }
+
+    public function toggleStarFolder(Request $request, VirtualFolder $folder): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    {
+        abort_unless($folder->user_id === $request->user()->id, 404);
+
+        $folder->update(['is_starred' => ! $folder->is_starred]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'is_starred' => (bool) $folder->is_starred,
+                'message' => $folder->is_starred ? 'Folder ditambahkan ke Favorit.' : 'Folder dihapus dari Favorit.',
+            ]);
+        }
+
+        return back();
+    }
+
+    public function updateFileLabels(Request $request, VirtualFile $file): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    {
+        abort_unless($file->user_id === $request->user()->id, 404);
+
+        $validated = $request->validate([
+            'label_ids' => ['present', 'array'],
+            'label_ids.*' => ['integer', Rule::exists('labels', 'id')->where('user_id', $request->user()->id)],
+        ]);
+
+        $file->labels()->sync($validated['label_ids']);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'labels' => $file->labels()->get(['labels.id', 'labels.name', 'labels.color']),
+                'message' => 'Label berkas berhasil diperbarui.',
+            ]);
+        }
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => "Label berkas \"{$file->name}\" berhasil disimpan.",
+        ]);
+    }
+
+    public function updateFolderLabels(Request $request, VirtualFolder $folder): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    {
+        abort_unless($folder->user_id === $request->user()->id, 404);
+
+        $validated = $request->validate([
+            'label_ids' => ['present', 'array'],
+            'label_ids.*' => ['integer', Rule::exists('labels', 'id')->where('user_id', $request->user()->id)],
+        ]);
+
+        $folder->labels()->sync($validated['label_ids']);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'labels' => $folder->labels()->get(['labels.id', 'labels.name', 'labels.color']),
+                'message' => 'Label folder berhasil diperbarui.',
+            ]);
+        }
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => "Label folder \"{$folder->name}\" berhasil disimpan.",
+        ]);
+    }
+
+    public function bulkStar(Request $request): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate([
+            'file_ids' => ['nullable', 'array'],
+            'file_ids.*' => ['integer'],
+            'folder_ids' => ['nullable', 'array'],
+            'folder_ids.*' => ['integer'],
+            'is_starred' => ['required', 'boolean'],
+        ]);
+
+        $userId = $request->user()->id;
+        $status = (bool) $validated['is_starred'];
+
+        if (! empty($validated['file_ids'])) {
+            VirtualFile::where('user_id', $userId)
+                ->whereIn('id', $validated['file_ids'])
+                ->update(['is_starred' => $status]);
+        }
+
+        if (! empty($validated['folder_ids'])) {
+            VirtualFolder::where('user_id', $userId)
+                ->whereIn('id', $validated['folder_ids'])
+                ->update(['is_starred' => $status]);
+        }
+
+        $msg = $status ? 'Item terpilih ditandai sebagai Favorit.' : 'Item terpilih dihapus dari Favorit.';
+
+        if ($request->wantsJson()) {
+            return response()->json(['message' => $msg]);
+        }
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => $msg,
+        ]);
+    }
+
+    public function bulkLabels(Request $request): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    {
+        $user = $request->user();
+        $validated = $request->validate([
+            'file_ids' => ['nullable', 'array'],
+            'file_ids.*' => ['integer'],
+            'folder_ids' => ['nullable', 'array'],
+            'folder_ids.*' => ['integer'],
+            'label_ids' => ['required', 'array'],
+            'label_ids.*' => ['integer', Rule::exists('labels', 'id')->where('user_id', $user->id)],
+            'action' => ['required', 'string', 'in:attach,detach,sync'],
+        ]);
+
+        $action = $validated['action'];
+        $labelIds = $validated['label_ids'];
+
+        if (! empty($validated['file_ids'])) {
+            $files = VirtualFile::where('user_id', $user->id)
+                ->whereIn('id', $validated['file_ids'])
+                ->get();
+
+            foreach ($files as $file) {
+                if ($action === 'attach') {
+                    $file->labels()->syncWithoutDetaching($labelIds);
+                } elseif ($action === 'detach') {
+                    $file->labels()->detach($labelIds);
+                } elseif ($action === 'sync') {
+                    $file->labels()->sync($labelIds);
+                }
+            }
+        }
+
+        if (! empty($validated['folder_ids'])) {
+            $folders = VirtualFolder::where('user_id', $user->id)
+                ->whereIn('id', $validated['folder_ids'])
+                ->get();
+
+            foreach ($folders as $folder) {
+                if ($action === 'attach') {
+                    $folder->labels()->syncWithoutDetaching($labelIds);
+                } elseif ($action === 'detach') {
+                    $folder->labels()->detach($labelIds);
+                } elseif ($action === 'sync') {
+                    $folder->labels()->sync($labelIds);
+                }
+            }
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Label item terpilih berhasil diperbarui.']);
+        }
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => 'Label item terpilih berhasil diperbarui.',
         ]);
     }
 

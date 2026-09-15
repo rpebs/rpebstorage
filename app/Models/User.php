@@ -68,4 +68,12 @@ class User extends Authenticatable implements PasskeyUser
     {
         return $this->hasMany(FileJob::class);
     }
+
+    /**
+     * @return HasMany<Label, $this>
+     */
+    public function labels(): HasMany
+    {
+        return $this->hasMany(Label::class);
+    }
 }

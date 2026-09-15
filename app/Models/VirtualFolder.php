@@ -5,10 +5,26 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 class VirtualFolder extends Model
 {
-    protected $fillable = ['user_id', 'parent_id', 'name'];
+    protected $fillable = ['user_id', 'parent_id', 'name', 'is_starred'];
+
+    protected function casts(): array
+    {
+        return [
+            'is_starred' => 'boolean',
+        ];
+    }
+
+    /**
+     * @return MorphToMany<Label, $this>
+     */
+    public function labels(): MorphToMany
+    {
+        return $this->morphToMany(Label::class, 'labelable')->withTimestamps();
+    }
 
     public function user(): BelongsTo
     {

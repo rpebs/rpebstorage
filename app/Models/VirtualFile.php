@@ -6,6 +6,7 @@ use App\Enums\AccountStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 class VirtualFile extends Model
 {
@@ -18,7 +19,24 @@ class VirtualFile extends Model
         'size',
         'mime_type',
         'is_chunked',
+        'is_starred',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'is_starred' => 'boolean',
+            'is_chunked' => 'boolean',
+        ];
+    }
+
+    /**
+     * @return MorphToMany<Label, $this>
+     */
+    public function labels(): MorphToMany
+    {
+        return $this->morphToMany(Label::class, 'labelable')->withTimestamps();
+    }
 
     public function user(): BelongsTo
     {

@@ -7,6 +7,7 @@ import {
     HardDrive,
     History,
     LayoutGrid,
+    Star,
 } from '@lucide/vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
@@ -35,6 +36,11 @@ const mainNavItems: NavItem[] = [
         title: 'Files',
         href: '/files',
         icon: FolderOpen,
+    },
+    {
+        title: 'Favorit',
+        href: '/files?filter=starred',
+        icon: Star,
     },
     {
         title: 'Akun Storage',
