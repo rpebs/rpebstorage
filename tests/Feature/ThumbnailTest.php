@@ -63,7 +63,7 @@ class ThumbnailTest extends TestCase
         $red = imagecolorallocate($im, 255, 0, 0);
         imagefilledrectangle($im, 0, 0, 600, 400, $red);
 
-        $tempPath = app(StorageManager::class)->tempPath(uniqid('img_', true) . '.png');
+        $tempPath = app(StorageManager::class)->tempPath(uniqid('img_', true).'.png');
         app(StorageManager::class)->ensureTempDir();
         imagepng($im, $tempPath);
         imagedestroy($im);

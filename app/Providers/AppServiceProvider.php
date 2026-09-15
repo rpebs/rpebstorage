@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Foundation\DevCommands;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
@@ -33,14 +34,14 @@ class AppServiceProvider extends ServiceProvider
      */
     protected function configureDevCommands(): void
     {
-        if (class_exists(\Illuminate\Foundation\DevCommands::class)) {
+        if (class_exists(DevCommands::class)) {
             if (PHP_OS_FAMILY === 'Windows') {
-                \Illuminate\Foundation\DevCommands::except('horizon');
-                \Illuminate\Foundation\DevCommands::artisan('queue:listen --tries=1 --timeout=0', 'queue');
+                DevCommands::except('horizon');
+                DevCommands::artisan('queue:listen --tries=1 --timeout=0', 'queue');
             }
 
             if (config('rpebs.telegram.dev_daemon')) {
-                \Illuminate\Foundation\DevCommands::artisan('telegram:listen', 'telegram');
+                DevCommands::artisan('telegram:listen', 'telegram');
             }
         }
     }

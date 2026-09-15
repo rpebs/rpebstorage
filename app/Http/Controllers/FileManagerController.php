@@ -15,12 +15,15 @@ use App\Models\VirtualFolder;
 use App\Services\Storage\PreviewService;
 use App\Services\Storage\StorageManager;
 use App\Services\Storage\ThumbnailService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class FileManagerController extends Controller
 {
@@ -352,7 +355,7 @@ class FileManagerController extends Controller
         ]);
     }
 
-    public function preview(Request $request, VirtualFile $file): \Symfony\Component\HttpFoundation\Response
+    public function preview(Request $request, VirtualFile $file): Response
     {
         abort_unless($file->user_id === $request->user()->id, 404);
 
@@ -379,7 +382,7 @@ class FileManagerController extends Controller
 
         $contentType = $this->previewService->resolveMimeType($file, $result);
         $lastModified = filemtime($result) ?: time();
-        $etag = '"' . md5($file->id . '-' . $lastModified . '-' . $file->size) . '"';
+        $etag = '"'.md5($file->id.'-'.$lastModified.'-'.$file->size).'"';
 
         if ($request->header('If-None-Match') === $etag) {
             return response('', 304, [
@@ -392,10 +395,10 @@ class FileManagerController extends Controller
 
         $response = response()->file($result, [
             'Content-Type' => $contentType,
-            'Content-Disposition' => 'inline; filename="' . $safeFilename . '"',
+            'Content-Disposition' => 'inline; filename="'.$safeFilename.'"',
             'Accept-Ranges' => 'bytes',
             'ETag' => $etag,
-            'Last-Modified' => gmdate('D, d M Y H:i:s', $lastModified) . ' GMT',
+            'Last-Modified' => gmdate('D, d M Y H:i:s', $lastModified).' GMT',
         ]);
 
         $response->setPrivate();
@@ -441,7 +444,7 @@ class FileManagerController extends Controller
         return response()->download($temp, $file->name)->deleteFileAfterSend(true);
     }
 
-    public function thumbnail(Request $request, VirtualFile $file): \Symfony\Component\HttpFoundation\Response
+    public function thumbnail(Request $request, VirtualFile $file): Response
     {
         abort_unless($file->user_id === $request->user()->id, 404);
 
@@ -456,7 +459,7 @@ class FileManagerController extends Controller
         }
 
         $lastModified = filemtime($path) ?: time();
-        $etag = '"' . md5($file->id . '-' . $lastModified) . '"';
+        $etag = '"'.md5($file->id.'-'.$lastModified).'"';
 
         if ($request->header('If-None-Match') === $etag) {
             return response('', 304, [
@@ -477,7 +480,7 @@ class FileManagerController extends Controller
         $response = response()->file($path, [
             'Content-Type' => $contentType,
             'ETag' => $etag,
-            'Last-Modified' => gmdate('D, d M Y H:i:s', $lastModified) . ' GMT',
+            'Last-Modified' => gmdate('D, d M Y H:i:s', $lastModified).' GMT',
         ]);
         $response->setPrivate();
         $response->setMaxAge(604800);
@@ -580,6 +583,7 @@ class FileManagerController extends Controller
 
             if (! $account || $account->status !== AccountStatus::Active) {
                 $skippedCount++;
+
                 continue;
             }
 
@@ -641,7 +645,7 @@ class FileManagerController extends Controller
             ], 422);
         }
 
-        $archiveName = 'berkas_' . now()->format('Ymd_His') . '.zip';
+        $archiveName = 'berkas_'.now()->format('Ymd_His').'.zip';
 
         $fileJob = FileJob::create([
             'user_id' => $request->user()->id,
@@ -696,7 +700,7 @@ class FileManagerController extends Controller
         return response()->download($zipPath, $job->original_name)->deleteFileAfterSend(true);
     }
 
-    public function toggleStarFile(Request $request, VirtualFile $file): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    public function toggleStarFile(Request $request, VirtualFile $file): JsonResponse|RedirectResponse
     {
         abort_unless($file->user_id === $request->user()->id, 404);
 
@@ -712,7 +716,7 @@ class FileManagerController extends Controller
         return back();
     }
 
-    public function toggleStarFolder(Request $request, VirtualFolder $folder): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    public function toggleStarFolder(Request $request, VirtualFolder $folder): JsonResponse|RedirectResponse
     {
         abort_unless($folder->user_id === $request->user()->id, 404);
 
@@ -728,7 +732,7 @@ class FileManagerController extends Controller
         return back();
     }
 
-    public function updateFileLabels(Request $request, VirtualFile $file): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    public function updateFileLabels(Request $request, VirtualFile $file): JsonResponse|RedirectResponse
     {
         abort_unless($file->user_id === $request->user()->id, 404);
 
@@ -752,7 +756,7 @@ class FileManagerController extends Controller
         ]);
     }
 
-    public function updateFolderLabels(Request $request, VirtualFolder $folder): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    public function updateFolderLabels(Request $request, VirtualFolder $folder): JsonResponse|RedirectResponse
     {
         abort_unless($folder->user_id === $request->user()->id, 404);
 
@@ -776,7 +780,7 @@ class FileManagerController extends Controller
         ]);
     }
 
-    public function bulkStar(Request $request): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    public function bulkStar(Request $request): JsonResponse|RedirectResponse
     {
         $validated = $request->validate([
             'file_ids' => ['nullable', 'array'],
@@ -813,7 +817,7 @@ class FileManagerController extends Controller
         ]);
     }
 
-    public function bulkLabels(Request $request): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    public function bulkLabels(Request $request): JsonResponse|RedirectResponse
     {
         $user = $request->user();
         $validated = $request->validate([

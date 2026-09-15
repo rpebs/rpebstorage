@@ -112,7 +112,11 @@ const props = withDefaults(
         breadcrumb: Array<{ id: number | string; name: string }>;
         folders: Array<FolderItem>;
         files: Array<FileItem>;
-        allFolders: Array<{ id: number; name: string; parent_id: number | null }>;
+        allFolders: Array<{
+            id: number;
+            name: string;
+            parent_id: number | null;
+        }>;
         allLabels?: Array<LabelItem>;
         currentFilter?: 'all' | 'starred' | 'label';
         currentLabel?: LabelItem | null;
@@ -246,13 +250,18 @@ function navigateToFolder(id: number | null): void {
     router.get('/files', id ? { folder: id } : {}, { preserveState: false });
 }
 
-function navigateToFilter(filter: 'all' | 'starred' | 'label', labelId?: number): void {
+function navigateToFilter(
+    filter: 'all' | 'starred' | 'label',
+    labelId?: number,
+): void {
     if (filter === 'starred') {
         router.get('/files', { filter: 'starred' }, { preserveState: false });
     } else if (filter === 'label' && labelId) {
         router.get('/files', { label: labelId }, { preserveState: false });
     } else {
-        router.get('/files', props.folder ? { folder: props.folder.id } : {}, { preserveState: false });
+        router.get('/files', props.folder ? { folder: props.folder.id } : {}, {
+            preserveState: false,
+        });
     }
 }
 
@@ -566,9 +575,8 @@ const isAllSelected = computed(
         sortedFiles.value.every((f) => selectedFileIds.value.includes(f.id)),
 );
 
-const isSomeSelected = computed(
-    () =>
-        sortedFiles.value.some((f) => selectedFileIds.value.includes(f.id)),
+const isSomeSelected = computed(() =>
+    sortedFiles.value.some((f) => selectedFileIds.value.includes(f.id)),
 );
 
 const selectedFilesPreview = computed(() =>
@@ -820,34 +828,108 @@ function pollZipStatus(jobId: number): void {
 }
 
 // Color Presets for Labels (utilitarian semantic colors)
-const PRESET_COLORS: Array<{ name: string; label: string; dot: string; bg: string; text: string; border: string }> = [
-    { name: 'teal', label: 'Teal', dot: 'bg-teal-500', bg: 'bg-teal-50 dark:bg-teal-950/60', text: 'text-teal-800 dark:text-teal-200', border: 'border-teal-200 dark:border-teal-800' },
-    { name: 'blue', label: 'Biru', dot: 'bg-blue-500', bg: 'bg-blue-50 dark:bg-blue-950/60', text: 'text-blue-800 dark:text-blue-200', border: 'border-blue-200 dark:border-blue-800' },
-    { name: 'indigo', label: 'Nila', dot: 'bg-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-950/60', text: 'text-indigo-800 dark:text-indigo-200', border: 'border-indigo-200 dark:border-indigo-800' },
-    { name: 'purple', label: 'Ungu', dot: 'bg-purple-500', bg: 'bg-purple-50 dark:bg-purple-950/60', text: 'text-purple-800 dark:text-purple-200', border: 'border-purple-200 dark:border-purple-800' },
-    { name: 'rose', label: 'Merah', dot: 'bg-rose-500', bg: 'bg-rose-50 dark:bg-rose-950/60', text: 'text-rose-800 dark:text-rose-200', border: 'border-rose-200 dark:border-rose-800' },
-    { name: 'amber', label: 'Oranye', dot: 'bg-amber-500', bg: 'bg-amber-50 dark:bg-amber-950/60', text: 'text-amber-800 dark:text-amber-200', border: 'border-amber-200 dark:border-amber-800' },
-    { name: 'emerald', label: 'Hijau', dot: 'bg-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/60', text: 'text-emerald-800 dark:text-emerald-200', border: 'border-emerald-200 dark:border-emerald-800' },
-    { name: 'slate', label: 'Abu-abu', dot: 'bg-zinc-500', bg: 'bg-zinc-100 dark:bg-zinc-800/80', text: 'text-zinc-800 dark:text-zinc-200', border: 'border-zinc-200 dark:border-zinc-700' },
+const PRESET_COLORS: Array<{
+    name: string;
+    label: string;
+    dot: string;
+    bg: string;
+    text: string;
+    border: string;
+}> = [
+    {
+        name: 'teal',
+        label: 'Teal',
+        dot: 'bg-teal-500',
+        bg: 'bg-teal-50 dark:bg-teal-950/60',
+        text: 'text-teal-800 dark:text-teal-200',
+        border: 'border-teal-200 dark:border-teal-800',
+    },
+    {
+        name: 'blue',
+        label: 'Biru',
+        dot: 'bg-blue-500',
+        bg: 'bg-blue-50 dark:bg-blue-950/60',
+        text: 'text-blue-800 dark:text-blue-200',
+        border: 'border-blue-200 dark:border-blue-800',
+    },
+    {
+        name: 'indigo',
+        label: 'Nila',
+        dot: 'bg-indigo-500',
+        bg: 'bg-indigo-50 dark:bg-indigo-950/60',
+        text: 'text-indigo-800 dark:text-indigo-200',
+        border: 'border-indigo-200 dark:border-indigo-800',
+    },
+    {
+        name: 'purple',
+        label: 'Ungu',
+        dot: 'bg-purple-500',
+        bg: 'bg-purple-50 dark:bg-purple-950/60',
+        text: 'text-purple-800 dark:text-purple-200',
+        border: 'border-purple-200 dark:border-purple-800',
+    },
+    {
+        name: 'rose',
+        label: 'Merah',
+        dot: 'bg-rose-500',
+        bg: 'bg-rose-50 dark:bg-rose-950/60',
+        text: 'text-rose-800 dark:text-rose-200',
+        border: 'border-rose-200 dark:border-rose-800',
+    },
+    {
+        name: 'amber',
+        label: 'Oranye',
+        dot: 'bg-amber-500',
+        bg: 'bg-amber-50 dark:bg-amber-950/60',
+        text: 'text-amber-800 dark:text-amber-200',
+        border: 'border-amber-200 dark:border-amber-800',
+    },
+    {
+        name: 'emerald',
+        label: 'Hijau',
+        dot: 'bg-emerald-500',
+        bg: 'bg-emerald-50 dark:bg-emerald-950/60',
+        text: 'text-emerald-800 dark:text-emerald-200',
+        border: 'border-emerald-200 dark:border-emerald-800',
+    },
+    {
+        name: 'slate',
+        label: 'Abu-abu',
+        dot: 'bg-zinc-500',
+        bg: 'bg-zinc-100 dark:bg-zinc-800/80',
+        text: 'text-zinc-800 dark:text-zinc-200',
+        border: 'border-zinc-200 dark:border-zinc-700',
+    },
 ];
 
 function getLabelColorClasses(colorName: string): string {
-    const found = PRESET_COLORS.find((c) => c.name.toLowerCase() === (colorName || '').toLowerCase());
-    return found ? `${found.bg} ${found.text} ${found.border}` : 'bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-200 border-teal-200 dark:border-teal-800';
+    const found = PRESET_COLORS.find(
+        (c) => c.name.toLowerCase() === (colorName || '').toLowerCase(),
+    );
+    return found
+        ? `${found.bg} ${found.text} ${found.border}`
+        : 'bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-200 border-teal-200 dark:border-teal-800';
 }
 
 function getLabelDotClass(colorName: string): string {
-    const found = PRESET_COLORS.find((c) => c.name.toLowerCase() === (colorName || '').toLowerCase());
+    const found = PRESET_COLORS.find(
+        (c) => c.name.toLowerCase() === (colorName || '').toLowerCase(),
+    );
     return found ? found.dot : 'bg-teal-500';
 }
 
 // Star toggle logic
-async function toggleStar(item: FileItem | FolderItem, isFolder = false): Promise<void> {
+async function toggleStar(
+    item: FileItem | FolderItem,
+    isFolder = false,
+): Promise<void> {
     const oldVal = item.is_starred ?? false;
     item.is_starred = !oldVal;
 
     try {
-        const url = isFolder ? `/files/folders/${item.id}/star` : `/files/${item.id}/star`;
+        const url = isFolder
+            ? `/files/folders/${item.id}/star`
+            : `/files/${item.id}/star`;
         const csrf = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]*)/);
         const headers: Record<string, string> = {
             'Content-Type': 'application/json',
@@ -1008,9 +1090,13 @@ function submitDeleteLabel(): void {
 }
 
 function seedDefaultLabels(): void {
-    router.post('/labels/defaults', {}, {
-        preserveScroll: true,
-    });
+    router.post(
+        '/labels/defaults',
+        {},
+        {
+            preserveScroll: true,
+        },
+    );
 }
 
 // Bulk Actions State (Star & Labels)
@@ -1051,7 +1137,11 @@ function submitBulkStar(isStarred: boolean): void {
 }
 
 function submitBulkLabels(): void {
-    if (selectedFileIds.value.length === 0 || bulkSelectedLabelIds.value.length === 0) return;
+    if (
+        selectedFileIds.value.length === 0 ||
+        bulkSelectedLabelIds.value.length === 0
+    )
+        return;
 
     isSubmittingBulkLabels.value = true;
     router.post(
@@ -1401,8 +1491,12 @@ onUnmounted(() => {
             <div class="flex flex-wrap items-center gap-1.5 pt-0.5 pb-1">
                 <button
                     type="button"
-                    class="inline-flex items-center gap-1.5 h-7 px-3 rounded-full text-xs font-medium cursor-pointer transition-colors"
-                    :class="currentFilter === 'all' && !search ? 'bg-teal-600 text-white dark:bg-teal-500 dark:text-zinc-950 font-semibold' : 'bg-muted/40 hover:bg-muted text-muted-foreground hover:text-foreground border'"
+                    class="inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-full px-3 text-xs font-medium transition-colors"
+                    :class="
+                        currentFilter === 'all' && !search
+                            ? 'bg-teal-600 font-semibold text-white dark:bg-teal-500 dark:text-zinc-950'
+                            : 'bg-muted/40 hover:bg-muted text-muted-foreground hover:text-foreground border'
+                    "
                     @click="navigateToFilter('all')"
                 >
                     Semua Berkas
@@ -1410,31 +1504,56 @@ onUnmounted(() => {
 
                 <button
                     type="button"
-                    class="inline-flex items-center gap-1.5 h-7 px-3 rounded-full text-xs font-medium cursor-pointer transition-colors"
-                    :class="currentFilter === 'starred' ? 'bg-amber-500 text-white dark:bg-amber-400 dark:text-zinc-950 font-semibold shadow-2xs' : 'bg-muted/40 hover:bg-muted text-muted-foreground hover:text-foreground border'"
+                    class="inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-full px-3 text-xs font-medium transition-colors"
+                    :class="
+                        currentFilter === 'starred'
+                            ? 'bg-amber-500 font-semibold text-white shadow-2xs dark:bg-amber-400 dark:text-zinc-950'
+                            : 'bg-muted/40 hover:bg-muted text-muted-foreground hover:text-foreground border'
+                    "
                     @click="navigateToFilter('starred')"
                 >
-                    <Star class="h-3 w-3" :class="currentFilter === 'starred' ? 'fill-white dark:fill-zinc-950' : 'fill-amber-400 text-amber-500'" />
+                    <Star
+                        class="h-3 w-3"
+                        :class="
+                            currentFilter === 'starred'
+                                ? 'fill-white dark:fill-zinc-950'
+                                : 'fill-amber-400 text-amber-500'
+                        "
+                    />
                     <span>Favorit</span>
                 </button>
 
-                <div v-if="allLabels && allLabels.length > 0" class="h-3.5 w-px bg-border mx-1 hidden sm:block" />
+                <div
+                    v-if="allLabels && allLabels.length > 0"
+                    class="bg-border mx-1 hidden h-3.5 w-px sm:block"
+                />
 
                 <!-- User Labels -->
                 <button
                     v-for="lbl in allLabels"
                     :key="lbl.id"
                     type="button"
-                    class="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium border transition-all cursor-pointer"
+                    class="inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium transition-all"
                     :class="[
                         getLabelColorClasses(lbl.color),
-                        currentLabel?.id === lbl.id ? 'ring-2 ring-teal-500/80 font-bold shadow-2xs' : 'opacity-85 hover:opacity-100'
+                        currentLabel?.id === lbl.id
+                            ? 'font-bold shadow-2xs ring-2 ring-teal-500/80'
+                            : 'opacity-85 hover:opacity-100',
                     ]"
                     @click="navigateToFilter('label', lbl.id)"
                 >
-                    <span class="h-1.5 w-1.5 rounded-full shrink-0" :class="getLabelDotClass(lbl.color)" />
+                    <span
+                        class="h-1.5 w-1.5 shrink-0 rounded-full"
+                        :class="getLabelDotClass(lbl.color)"
+                    />
                     <span>{{ lbl.name }}</span>
-                    <span v-if="(lbl.files_count ?? 0) + (lbl.folders_count ?? 0) > 0" class="text-[10px] opacity-75 tabular-nums">
+                    <span
+                        v-if="
+                            (lbl.files_count ?? 0) + (lbl.folders_count ?? 0) >
+                            0
+                        "
+                        class="text-[10px] tabular-nums opacity-75"
+                    >
                         {{ (lbl.files_count ?? 0) + (lbl.folders_count ?? 0) }}
                     </span>
                 </button>
@@ -1444,7 +1563,7 @@ onUnmounted(() => {
                     type="button"
                     variant="outline"
                     size="sm"
-                    class="h-7 px-2.5 rounded-full text-xs gap-1.5 text-muted-foreground hover:text-foreground cursor-pointer"
+                    class="text-muted-foreground hover:text-foreground h-7 cursor-pointer gap-1.5 rounded-full px-2.5 text-xs"
                     @click="manageLabelsOpen = true"
                 >
                     <Tags class="h-3.5 w-3.5" />
@@ -1553,23 +1672,37 @@ onUnmounted(() => {
 
             <!-- Zip Creation Progress Banner -->
             <div
-                v-if="zipJob && (zipJob.status === 'pending' || zipJob.status === 'processing')"
-                class="rounded-lg border border-teal-200 bg-teal-50/50 p-3 dark:border-teal-900/60 dark:bg-teal-950/20 flex flex-wrap items-center justify-between gap-3 text-xs"
+                v-if="
+                    zipJob &&
+                    (zipJob.status === 'pending' ||
+                        zipJob.status === 'processing')
+                "
+                class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-teal-200 bg-teal-50/50 p-3 text-xs dark:border-teal-900/60 dark:bg-teal-950/20"
                 role="status"
                 aria-live="polite"
             >
-                <div class="flex items-center gap-2.5 min-w-0">
-                    <div class="h-2 w-2 rounded-full bg-teal-600 animate-pulse shrink-0 dark:bg-teal-400" />
-                    <span class="font-medium text-teal-900 dark:text-teal-200 truncate">
+                <div class="flex min-w-0 items-center gap-2.5">
+                    <div
+                        class="h-2 w-2 shrink-0 animate-pulse rounded-full bg-teal-600 dark:bg-teal-400"
+                    />
+                    <span
+                        class="truncate font-medium text-teal-900 dark:text-teal-200"
+                    >
                         Menyiapkan arsip ZIP: {{ zipJob.name }}
                     </span>
-                    <span class="text-muted-foreground tabular-nums">{{ zipJob.progress }}%</span>
+                    <span class="text-muted-foreground tabular-nums"
+                        >{{ zipJob.progress }}%</span
+                    >
                 </div>
                 <div class="flex items-center gap-3">
-                    <div class="h-1.5 w-28 bg-muted rounded-full overflow-hidden sm:w-44">
+                    <div
+                        class="bg-muted h-1.5 w-28 overflow-hidden rounded-full sm:w-44"
+                    >
                         <div
-                            class="h-full bg-teal-600 dark:bg-teal-400 transition-all duration-300"
-                            :style="{ width: `${Math.max(8, zipJob.progress)}%` }"
+                            class="h-full bg-teal-600 transition-all duration-300 dark:bg-teal-400"
+                            :style="{
+                                width: `${Math.max(8, zipJob.progress)}%`,
+                            }"
                         />
                     </div>
                 </div>
@@ -1578,20 +1711,26 @@ onUnmounted(() => {
             <!-- Zip Creation Done Banner -->
             <div
                 v-if="zipJob && zipJob.status === 'done' && showZipDoneBanner"
-                class="rounded-lg border border-emerald-200 bg-emerald-50/50 p-3 dark:border-emerald-900/60 dark:bg-emerald-950/30 flex flex-wrap items-center justify-between gap-3 text-xs"
+                class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50/50 p-3 text-xs dark:border-emerald-900/60 dark:bg-emerald-950/30"
                 role="status"
                 aria-live="polite"
             >
-                <div class="flex items-center gap-2 min-w-0">
-                    <Check class="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                    <span class="text-emerald-900 dark:text-emerald-200 font-medium truncate">
-                        Arsip ZIP {{ zipJob.name }} selesai disiapkan{{ zipJob.size ? ` (${formatBytes(zipJob.size)})` : '' }}.
+                <div class="flex min-w-0 items-center gap-2">
+                    <Check
+                        class="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400"
+                    />
+                    <span
+                        class="truncate font-medium text-emerald-900 dark:text-emerald-200"
+                    >
+                        Arsip ZIP {{ zipJob.name }} selesai disiapkan{{
+                            zipJob.size ? ` (${formatBytes(zipJob.size)})` : ''
+                        }}.
                     </span>
                 </div>
                 <div class="flex items-center gap-2">
                     <a
                         :href="`/files/zip/${zipJob.id}/download`"
-                        class="inline-flex items-center gap-1.5 rounded-md bg-teal-600 px-2.5 py-1 text-white hover:bg-teal-700 dark:bg-teal-500 dark:text-zinc-950 dark:hover:bg-teal-400 font-medium shadow-2xs"
+                        class="inline-flex items-center gap-1.5 rounded-md bg-teal-600 px-2.5 py-1 font-medium text-white shadow-2xs hover:bg-teal-700 dark:bg-teal-500 dark:text-zinc-950 dark:hover:bg-teal-400"
                         download
                     >
                         <Download class="h-3.5 w-3.5" />
@@ -1612,12 +1751,14 @@ onUnmounted(() => {
             <!-- Zip Creation Failed Banner -->
             <div
                 v-if="zipJob && zipJob.status === 'failed'"
-                class="rounded-lg border border-red-200 bg-red-50/50 p-3 dark:border-red-900/60 dark:bg-red-950/20 flex items-center justify-between gap-3 text-xs"
+                class="flex items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50/50 p-3 text-xs dark:border-red-900/60 dark:bg-red-950/20"
                 role="alert"
             >
-                <div class="flex items-center gap-2 min-w-0 text-red-700 dark:text-red-400">
+                <div
+                    class="flex min-w-0 items-center gap-2 text-red-700 dark:text-red-400"
+                >
                     <X class="h-4 w-4 shrink-0" />
-                    <span class="font-medium truncate">
+                    <span class="truncate font-medium">
                         {{ zipJob.error || 'Gagal membuat arsip ZIP.' }}
                     </span>
                 </div>
@@ -1650,15 +1791,21 @@ onUnmounted(() => {
                     </span>
                     <template v-if="selectedFileIds.length > 0">
                         <span>•</span>
-                        <span class="text-teal-600 dark:text-teal-400 font-semibold tabular-nums">
+                        <span
+                            class="font-semibold text-teal-600 tabular-nums dark:text-teal-400"
+                        >
                             {{ selectedFileIds.length }} dipilih
                         </span>
                         <button
                             type="button"
-                            class="text-muted-foreground hover:text-foreground underline cursor-pointer"
+                            class="text-muted-foreground hover:text-foreground cursor-pointer underline"
                             @click="toggleSelectAll"
                         >
-                            {{ isAllSelected ? 'Batalkan pilihan' : 'Pilih semua' }}
+                            {{
+                                isAllSelected
+                                    ? 'Batalkan pilihan'
+                                    : 'Pilih semua'
+                            }}
                         </button>
                     </template>
                 </div>
@@ -1675,12 +1822,15 @@ onUnmounted(() => {
                 v-if="currentFilter === 'starred' && isEmpty"
                 class="rounded-lg border border-dashed p-10 text-center"
             >
-                <Star class="text-amber-500/80 mx-auto mb-3 h-10 w-10 fill-amber-400/20" />
+                <Star
+                    class="mx-auto mb-3 h-10 w-10 fill-amber-400/20 text-amber-500/80"
+                />
                 <p class="text-sm font-semibold">
                     Belum ada berkas atau folder favorit
                 </p>
-                <p class="text-muted-foreground mt-1 text-xs max-w-md mx-auto">
-                    Tandai berkas atau folder penting dengan ikon bintang agar dapat dikelompokkan dan ditemukan dengan cepat di sini.
+                <p class="text-muted-foreground mx-auto mt-1 max-w-md text-xs">
+                    Tandai berkas atau folder penting dengan ikon bintang agar
+                    dapat dikelompokkan dan ditemukan dengan cepat di sini.
                 </p>
                 <div class="mt-5 flex items-center justify-center">
                     <Button
@@ -1698,12 +1848,16 @@ onUnmounted(() => {
                 v-else-if="currentFilter === 'label' && currentLabel && isEmpty"
                 class="rounded-lg border border-dashed p-10 text-center"
             >
-                <Tag class="text-teal-600 dark:text-teal-400 mx-auto mb-3 h-10 w-10 opacity-70" />
+                <Tag
+                    class="mx-auto mb-3 h-10 w-10 text-teal-600 opacity-70 dark:text-teal-400"
+                />
                 <p class="text-sm font-semibold">
                     Belum ada berkas dengan label "{{ currentLabel.name }}"
                 </p>
-                <p class="text-muted-foreground mt-1 text-xs max-w-md mx-auto">
-                    Gunakan menu aksi pada berkas atau folder untuk memasang label ini, sehingga berkas dapat dikelompokkan melintasi struktur folder.
+                <p class="text-muted-foreground mx-auto mt-1 max-w-md text-xs">
+                    Gunakan menu aksi pada berkas atau folder untuk memasang
+                    label ini, sehingga berkas dapat dikelompokkan melintasi
+                    struktur folder.
                 </p>
                 <div class="mt-5 flex items-center justify-center">
                     <Button
@@ -1789,15 +1943,22 @@ onUnmounted(() => {
                             class="bg-muted/40 text-muted-foreground border-b font-medium select-none"
                         >
                             <tr>
-                                <th class="w-10 px-3 py-3 text-center" @click.stop>
-                                    <div class="flex items-center justify-center">
+                                <th
+                                    class="w-10 px-3 py-3 text-center"
+                                    @click.stop
+                                >
+                                    <div
+                                        class="flex items-center justify-center"
+                                    >
                                         <input
                                             type="checkbox"
                                             :checked="isAllSelected"
-                                            :indeterminate.prop="isSomeSelected && !isAllSelected"
+                                            :indeterminate.prop="
+                                                isSomeSelected && !isAllSelected
+                                            "
                                             :disabled="sortedFiles.length === 0"
                                             aria-label="Pilih semua berkas"
-                                            class="h-4 w-4 rounded border-border text-teal-600 focus:ring-teal-500 cursor-pointer accent-teal-600 dark:accent-teal-500 disabled:opacity-40"
+                                            class="border-border h-4 w-4 cursor-pointer rounded text-teal-600 accent-teal-600 focus:ring-teal-500 disabled:opacity-40 dark:accent-teal-500"
                                             @change="toggleSelectAll"
                                         />
                                     </div>
@@ -1900,20 +2061,36 @@ onUnmounted(() => {
                                 <td class="w-10 px-3 py-2.5 text-center">
                                     <button
                                         type="button"
-                                        class="text-muted-foreground/40 hover:text-amber-500 focus:outline-hidden p-1 rounded cursor-pointer transition-colors"
-                                        :class="{ 'text-amber-500': item.is_starred }"
-                                        :aria-label="item.is_starred ? `Hapus bintang dari folder ${item.name}` : `Bintang folder ${item.name}`"
-                                        :title="item.is_starred ? 'Favorit' : 'Tandai sebagai favorit'"
+                                        class="text-muted-foreground/40 cursor-pointer rounded p-1 transition-colors hover:text-amber-500 focus:outline-hidden"
+                                        :class="{
+                                            'text-amber-500': item.is_starred,
+                                        }"
+                                        :aria-label="
+                                            item.is_starred
+                                                ? `Hapus bintang dari folder ${item.name}`
+                                                : `Bintang folder ${item.name}`
+                                        "
+                                        :title="
+                                            item.is_starred
+                                                ? 'Favorit'
+                                                : 'Tandai sebagai favorit'
+                                        "
                                         @click.stop="toggleStar(item, true)"
                                     >
                                         <Star
                                             class="h-4 w-4"
-                                            :class="item.is_starred ? 'fill-amber-400 text-amber-500' : 'hover:fill-amber-100 dark:hover:fill-amber-950/40'"
+                                            :class="
+                                                item.is_starred
+                                                    ? 'fill-amber-400 text-amber-500'
+                                                    : 'hover:fill-amber-100 dark:hover:fill-amber-950/40'
+                                            "
                                         />
                                     </button>
                                 </td>
                                 <td class="px-4 py-2.5">
-                                    <div class="flex min-w-0 items-center gap-2 flex-wrap sm:flex-nowrap">
+                                    <div
+                                        class="flex min-w-0 flex-wrap items-center gap-2 sm:flex-nowrap"
+                                    >
                                         <button
                                             type="button"
                                             class="text-foreground flex min-w-0 items-center gap-2.5 text-left font-medium transition-colors hover:text-teal-600 dark:hover:text-teal-400"
@@ -1927,20 +2104,40 @@ onUnmounted(() => {
                                             }}</span>
                                         </button>
                                         <span
-                                            v-if="item.parent_name && currentFilter !== 'all'"
-                                            class="text-[10px] text-muted-foreground/75 font-normal truncate"
+                                            v-if="
+                                                item.parent_name &&
+                                                currentFilter !== 'all'
+                                            "
+                                            class="text-muted-foreground/75 truncate text-[10px] font-normal"
                                             :title="`Folder induk: ${item.parent_name}`"
                                         >
                                             dalam {{ item.parent_name }}
                                         </span>
-                                        <div v-if="item.labels && item.labels.length > 0" class="flex flex-wrap items-center gap-1 shrink-0">
+                                        <div
+                                            v-if="
+                                                item.labels &&
+                                                item.labels.length > 0
+                                            "
+                                            class="flex shrink-0 flex-wrap items-center gap-1"
+                                        >
                                             <span
                                                 v-for="lbl in item.labels"
                                                 :key="lbl.id"
-                                                class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border"
-                                                :class="getLabelColorClasses(lbl.color)"
+                                                class="inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-medium"
+                                                :class="
+                                                    getLabelColorClasses(
+                                                        lbl.color,
+                                                    )
+                                                "
                                             >
-                                                <span class="h-1 w-1 rounded-full shrink-0" :class="getLabelDotClass(lbl.color)" />
+                                                <span
+                                                    class="h-1 w-1 shrink-0 rounded-full"
+                                                    :class="
+                                                        getLabelDotClass(
+                                                            lbl.color,
+                                                        )
+                                                    "
+                                                />
                                                 <span>{{ lbl.name }}</span>
                                             </span>
                                         </div>
@@ -1976,7 +2173,9 @@ onUnmounted(() => {
                                             class="text-muted-foreground hover:text-foreground h-8 w-8 cursor-pointer"
                                             :aria-label="`Kelola label folder ${item.name}`"
                                             title="Kelola label"
-                                            @click.stop="openItemLabels(item, true)"
+                                            @click.stop="
+                                                openItemLabels(item, true)
+                                            "
                                         >
                                             <Tag class="h-3.5 w-3.5" />
                                         </Button>
@@ -2007,16 +2206,30 @@ onUnmounted(() => {
                                 v-for="(file, index) in sortedFiles"
                                 :key="`file-${file.id}`"
                                 class="hover:bg-muted/40 transition-colors"
-                                :class="{ 'bg-teal-50/50 dark:bg-teal-950/30': isSelected(file.id) }"
+                                :class="{
+                                    'bg-teal-50/50 dark:bg-teal-950/30':
+                                        isSelected(file.id),
+                                }"
                             >
-                                <td class="w-10 px-3 py-2.5 text-center" @click.stop>
-                                    <div class="flex items-center justify-center">
+                                <td
+                                    class="w-10 px-3 py-2.5 text-center"
+                                    @click.stop
+                                >
+                                    <div
+                                        class="flex items-center justify-center"
+                                    >
                                         <input
                                             type="checkbox"
                                             :checked="isSelected(file.id)"
                                             :aria-label="`Pilih berkas ${file.name}`"
-                                            class="h-4 w-4 rounded border-border text-teal-600 focus:ring-teal-500 cursor-pointer accent-teal-600 dark:accent-teal-500"
-                                            @click="handleCheckboxClick($event, file.id, index)"
+                                            class="border-border h-4 w-4 cursor-pointer rounded text-teal-600 accent-teal-600 focus:ring-teal-500 dark:accent-teal-500"
+                                            @click="
+                                                handleCheckboxClick(
+                                                    $event,
+                                                    file.id,
+                                                    index,
+                                                )
+                                            "
                                         />
                                     </div>
                                 </td>
@@ -2026,15 +2239,32 @@ onUnmounted(() => {
                                     >
                                         <button
                                             type="button"
-                                            class="text-muted-foreground/40 hover:text-amber-500 focus:outline-hidden p-0.5 rounded cursor-pointer transition-colors shrink-0"
-                                            :class="{ 'text-amber-500': file.is_starred }"
-                                            :aria-label="file.is_starred ? `Hapus bintang dari berkas ${file.name}` : `Bintang berkas ${file.name}`"
-                                            :title="file.is_starred ? 'Favorit' : 'Tandai sebagai favorit'"
-                                            @click.stop="toggleStar(file, false)"
+                                            class="text-muted-foreground/40 shrink-0 cursor-pointer rounded p-0.5 transition-colors hover:text-amber-500 focus:outline-hidden"
+                                            :class="{
+                                                'text-amber-500':
+                                                    file.is_starred,
+                                            }"
+                                            :aria-label="
+                                                file.is_starred
+                                                    ? `Hapus bintang dari berkas ${file.name}`
+                                                    : `Bintang berkas ${file.name}`
+                                            "
+                                            :title="
+                                                file.is_starred
+                                                    ? 'Favorit'
+                                                    : 'Tandai sebagai favorit'
+                                            "
+                                            @click.stop="
+                                                toggleStar(file, false)
+                                            "
                                         >
                                             <Star
                                                 class="h-3.5 w-3.5"
-                                                :class="file.is_starred ? 'fill-amber-400 text-amber-500' : 'hover:fill-amber-100 dark:hover:fill-amber-950/40'"
+                                                :class="
+                                                    file.is_starred
+                                                        ? 'fill-amber-400 text-amber-500'
+                                                        : 'hover:fill-amber-100 dark:hover:fill-amber-950/40'
+                                                "
                                             />
                                         </button>
 
@@ -2093,20 +2323,40 @@ onUnmounted(() => {
                                             {{ file.name }}
                                         </button>
                                         <span
-                                            v-if="file.folder_name && currentFilter !== 'all'"
-                                            class="text-[10px] text-muted-foreground/75 font-normal truncate hidden md:inline"
+                                            v-if="
+                                                file.folder_name &&
+                                                currentFilter !== 'all'
+                                            "
+                                            class="text-muted-foreground/75 hidden truncate text-[10px] font-normal md:inline"
                                             :title="`Folder: ${file.folder_name}`"
                                         >
                                             dalam {{ file.folder_name }}
                                         </span>
-                                        <div v-if="file.labels && file.labels.length > 0" class="flex flex-wrap items-center gap-1 shrink-0">
+                                        <div
+                                            v-if="
+                                                file.labels &&
+                                                file.labels.length > 0
+                                            "
+                                            class="flex shrink-0 flex-wrap items-center gap-1"
+                                        >
                                             <span
                                                 v-for="lbl in file.labels"
                                                 :key="lbl.id"
-                                                class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border"
-                                                :class="getLabelColorClasses(lbl.color)"
+                                                class="inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-medium"
+                                                :class="
+                                                    getLabelColorClasses(
+                                                        lbl.color,
+                                                    )
+                                                "
                                             >
-                                                <span class="h-1 w-1 rounded-full shrink-0" :class="getLabelDotClass(lbl.color)" />
+                                                <span
+                                                    class="h-1 w-1 shrink-0 rounded-full"
+                                                    :class="
+                                                        getLabelDotClass(
+                                                            lbl.color,
+                                                        )
+                                                    "
+                                                />
                                                 <span>{{ lbl.name }}</span>
                                             </span>
                                         </div>
@@ -2176,7 +2426,9 @@ onUnmounted(() => {
                                             class="text-muted-foreground hover:text-foreground h-8 w-8 cursor-pointer"
                                             :aria-label="`Kelola label berkas ${file.name}`"
                                             title="Kelola label"
-                                            @click.stop="openItemLabels(file, false)"
+                                            @click.stop="
+                                                openItemLabels(file, false)
+                                            "
                                         >
                                             <Tag class="h-3.5 w-3.5" />
                                         </Button>
@@ -2244,21 +2496,35 @@ onUnmounted(() => {
                             <div class="flex items-start justify-between gap-1">
                                 <div class="flex items-center gap-1.5">
                                     <div
-                                        class="flex h-9 w-9 items-center justify-center rounded-md bg-teal-50 text-teal-600 dark:bg-teal-950/50 dark:text-teal-400 shrink-0"
+                                        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-teal-50 text-teal-600 dark:bg-teal-950/50 dark:text-teal-400"
                                     >
                                         <FolderIcon class="h-5 w-5" />
                                     </div>
                                     <button
                                         type="button"
-                                        class="text-muted-foreground/40 hover:text-amber-500 focus:outline-hidden p-1 rounded cursor-pointer transition-colors"
-                                        :class="{ 'text-amber-500': item.is_starred }"
-                                        :aria-label="item.is_starred ? `Hapus bintang dari folder ${item.name}` : `Bintang folder ${item.name}`"
-                                        :title="item.is_starred ? 'Favorit' : 'Tandai sebagai favorit'"
+                                        class="text-muted-foreground/40 cursor-pointer rounded p-1 transition-colors hover:text-amber-500 focus:outline-hidden"
+                                        :class="{
+                                            'text-amber-500': item.is_starred,
+                                        }"
+                                        :aria-label="
+                                            item.is_starred
+                                                ? `Hapus bintang dari folder ${item.name}`
+                                                : `Bintang folder ${item.name}`
+                                        "
+                                        :title="
+                                            item.is_starred
+                                                ? 'Favorit'
+                                                : 'Tandai sebagai favorit'
+                                        "
                                         @click.stop="toggleStar(item, true)"
                                     >
                                         <Star
                                             class="h-3.5 w-3.5"
-                                            :class="item.is_starred ? 'fill-amber-400 text-amber-500' : 'hover:fill-amber-100 dark:hover:fill-amber-950/40'"
+                                            :class="
+                                                item.is_starred
+                                                    ? 'fill-amber-400 text-amber-500'
+                                                    : 'hover:fill-amber-100 dark:hover:fill-amber-950/40'
+                                            "
                                         />
                                     </button>
                                 </div>
@@ -2280,7 +2546,9 @@ onUnmounted(() => {
                                     >
                                         <DropdownMenuItem
                                             class="flex cursor-pointer items-center gap-2"
-                                            @click.stop="openItemLabels(item, true)"
+                                            @click.stop="
+                                                openItemLabels(item, true)
+                                            "
                                         >
                                             <Tag class="h-3.5 w-3.5" />
                                             <span>Beri Label</span>
@@ -2312,21 +2580,32 @@ onUnmounted(() => {
                                     {{ item.name }}
                                 </p>
                                 <p
-                                    v-if="item.parent_name && currentFilter !== 'all'"
+                                    v-if="
+                                        item.parent_name &&
+                                        currentFilter !== 'all'
+                                    "
                                     class="text-muted-foreground/80 mt-0.5 truncate text-[10px]"
                                     :title="`Folder induk: ${item.parent_name}`"
                                 >
                                     dalam {{ item.parent_name }}
                                 </p>
-                                <div v-if="item.labels && item.labels.length > 0" class="mt-1.5 flex flex-wrap gap-1">
+                                <div
+                                    v-if="item.labels && item.labels.length > 0"
+                                    class="mt-1.5 flex flex-wrap gap-1"
+                                >
                                     <span
                                         v-for="lbl in item.labels"
                                         :key="lbl.id"
-                                        class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-medium border"
+                                        class="inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px] font-medium"
                                         :class="getLabelColorClasses(lbl.color)"
                                     >
-                                        <span class="h-1 w-1 rounded-full shrink-0" :class="getLabelDotClass(lbl.color)" />
-                                        <span class="truncate max-w-[80px]">{{ lbl.name }}</span>
+                                        <span
+                                            class="h-1 w-1 shrink-0 rounded-full"
+                                            :class="getLabelDotClass(lbl.color)"
+                                        />
+                                        <span class="max-w-[80px] truncate">{{
+                                            lbl.name
+                                        }}</span>
                                     </span>
                                 </div>
                                 <p
@@ -2356,7 +2635,7 @@ onUnmounted(() => {
                             tabindex="0"
                             class="group bg-card hover:bg-muted/30 relative flex cursor-pointer flex-col justify-between rounded-lg border p-3 shadow-2xs transition-all hover:border-teal-500/50 focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:outline-hidden"
                             :class="{
-                                'ring-2 ring-teal-500/80 border-teal-500/80 bg-teal-50/20 dark:bg-teal-950/20':
+                                'border-teal-500/80 bg-teal-50/20 ring-2 ring-teal-500/80 dark:bg-teal-950/20':
                                     isSelected(file.id),
                             }"
                             :aria-label="`Pratinjau ${file.name}`"
@@ -2372,7 +2651,7 @@ onUnmounted(() => {
                                     type="checkbox"
                                     :checked="isSelected(file.id)"
                                     :aria-label="`Pilih berkas ${file.name}`"
-                                    class="h-4 w-4 rounded border-border bg-background/90 text-teal-600 shadow-xs focus:ring-teal-500 cursor-pointer accent-teal-600 dark:accent-teal-500"
+                                    class="border-border bg-background/90 h-4 w-4 cursor-pointer rounded text-teal-600 accent-teal-600 shadow-xs focus:ring-teal-500 dark:accent-teal-500"
                                     @click="
                                         handleCheckboxClick(
                                             $event,
@@ -2422,18 +2701,37 @@ onUnmounted(() => {
                                 </template>
 
                                 <!-- Action trigger and Star button -->
-                                <div class="absolute top-1 right-1 flex items-center gap-1" @click.stop>
+                                <div
+                                    class="absolute top-1 right-1 flex items-center gap-1"
+                                    @click.stop
+                                >
                                     <button
                                         type="button"
-                                        class="bg-background/80 border-border/30 hover:bg-background h-6 w-6 rounded border backdrop-blur-xs flex items-center justify-center cursor-pointer transition-colors"
-                                        :class="file.is_starred ? 'text-amber-500' : 'text-muted-foreground hover:text-amber-500'"
-                                        :aria-label="file.is_starred ? `Hapus bintang dari berkas ${file.name}` : `Bintang berkas ${file.name}`"
-                                        :title="file.is_starred ? 'Favorit' : 'Tandai sebagai favorit'"
+                                        class="bg-background/80 border-border/30 hover:bg-background flex h-6 w-6 cursor-pointer items-center justify-center rounded border backdrop-blur-xs transition-colors"
+                                        :class="
+                                            file.is_starred
+                                                ? 'text-amber-500'
+                                                : 'text-muted-foreground hover:text-amber-500'
+                                        "
+                                        :aria-label="
+                                            file.is_starred
+                                                ? `Hapus bintang dari berkas ${file.name}`
+                                                : `Bintang berkas ${file.name}`
+                                        "
+                                        :title="
+                                            file.is_starred
+                                                ? 'Favorit'
+                                                : 'Tandai sebagai favorit'
+                                        "
                                         @click.stop="toggleStar(file, false)"
                                     >
                                         <Star
                                             class="h-3 w-3"
-                                            :class="file.is_starred ? 'fill-amber-400 text-amber-500' : 'hover:fill-amber-100 dark:hover:fill-amber-950/40'"
+                                            :class="
+                                                file.is_starred
+                                                    ? 'fill-amber-400 text-amber-500'
+                                                    : 'hover:fill-amber-100 dark:hover:fill-amber-950/40'
+                                            "
                                         />
                                     </button>
                                     <DropdownMenu>
@@ -2466,7 +2764,9 @@ onUnmounted(() => {
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
                                                 class="flex cursor-pointer items-center gap-2"
-                                                @click.stop="openItemLabels(file, false)"
+                                                @click.stop="
+                                                    openItemLabels(file, false)
+                                                "
                                             >
                                                 <Tag class="h-3.5 w-3.5" />
                                                 <span>Beri Label</span>
@@ -2524,21 +2824,32 @@ onUnmounted(() => {
                                     {{ file.name }}
                                 </p>
                                 <p
-                                    v-if="file.folder_name && currentFilter !== 'all'"
+                                    v-if="
+                                        file.folder_name &&
+                                        currentFilter !== 'all'
+                                    "
                                     class="text-muted-foreground/80 mt-0.5 truncate text-[10px]"
                                     :title="`Folder: ${file.folder_name}`"
                                 >
                                     dalam {{ file.folder_name }}
                                 </p>
-                                <div v-if="file.labels && file.labels.length > 0" class="mt-1.5 flex flex-wrap gap-1">
+                                <div
+                                    v-if="file.labels && file.labels.length > 0"
+                                    class="mt-1.5 flex flex-wrap gap-1"
+                                >
                                     <span
                                         v-for="lbl in file.labels"
                                         :key="lbl.id"
-                                        class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-medium border"
+                                        class="inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px] font-medium"
                                         :class="getLabelColorClasses(lbl.color)"
                                     >
-                                        <span class="h-1 w-1 rounded-full shrink-0" :class="getLabelDotClass(lbl.color)" />
-                                        <span class="truncate max-w-[80px]">{{ lbl.name }}</span>
+                                        <span
+                                            class="h-1 w-1 shrink-0 rounded-full"
+                                            :class="getLabelDotClass(lbl.color)"
+                                        />
+                                        <span class="max-w-[80px] truncate">{{
+                                            lbl.name
+                                        }}</span>
                                     </span>
                                 </div>
                                 <div
@@ -2774,13 +3085,17 @@ onUnmounted(() => {
                 v-if="selectedFileIds.length > 0"
                 role="toolbar"
                 aria-label="Aksi massal untuk berkas yang dipilih"
-                class="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex max-w-[95vw] flex-wrap items-center gap-2 rounded-lg border bg-card/95 px-3.5 py-2.5 shadow-lg backdrop-blur-xs sm:gap-3"
+                class="bg-card/95 fixed bottom-6 left-1/2 z-40 flex max-w-[95vw] -translate-x-1/2 flex-wrap items-center gap-2 rounded-lg border px-3.5 py-2.5 shadow-lg backdrop-blur-xs sm:gap-3"
             >
-                <div class="flex items-center gap-2 pr-1 border-r sm:pr-2">
-                    <span class="inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-teal-50 px-1.5 text-xs font-semibold tabular-nums text-teal-700 dark:bg-teal-950/60 dark:text-teal-300">
+                <div class="flex items-center gap-2 border-r pr-1 sm:pr-2">
+                    <span
+                        class="inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-teal-50 px-1.5 text-xs font-semibold text-teal-700 tabular-nums dark:bg-teal-950/60 dark:text-teal-300"
+                    >
                         {{ selectedFileIds.length }}
                     </span>
-                    <span class="text-xs font-medium text-foreground whitespace-nowrap">
+                    <span
+                        class="text-foreground text-xs font-medium whitespace-nowrap"
+                    >
                         berkas dipilih
                     </span>
                 </div>
@@ -2791,10 +3106,12 @@ onUnmounted(() => {
                         size="sm"
                         variant="outline"
                         :disabled="isSubmittingBulkStar"
-                        class="h-9 gap-1.5 text-xs font-medium hover:bg-muted cursor-pointer"
+                        class="hover:bg-muted h-9 cursor-pointer gap-1.5 text-xs font-medium"
                         @click="submitBulkStar(true)"
                     >
-                        <Star class="h-3.5 w-3.5 text-amber-500 fill-amber-400" />
+                        <Star
+                            class="h-3.5 w-3.5 fill-amber-400 text-amber-500"
+                        />
                         <span>Favoritkan</span>
                     </Button>
 
@@ -2802,10 +3119,12 @@ onUnmounted(() => {
                         type="button"
                         size="sm"
                         variant="outline"
-                        class="h-9 gap-1.5 text-xs font-medium hover:bg-muted cursor-pointer"
+                        class="hover:bg-muted h-9 cursor-pointer gap-1.5 text-xs font-medium"
                         @click="bulkLabelsOpen = true"
                     >
-                        <Tag class="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+                        <Tag
+                            class="h-3.5 w-3.5 text-teal-600 dark:text-teal-400"
+                        />
                         <span>Beri Label</span>
                     </Button>
 
@@ -2813,10 +3132,12 @@ onUnmounted(() => {
                         type="button"
                         size="sm"
                         variant="outline"
-                        class="h-9 gap-1.5 text-xs font-medium hover:bg-muted cursor-pointer"
+                        class="hover:bg-muted h-9 cursor-pointer gap-1.5 text-xs font-medium"
                         @click="openBulkMove"
                     >
-                        <FolderInput class="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+                        <FolderInput
+                            class="h-3.5 w-3.5 text-teal-600 dark:text-teal-400"
+                        />
                         <span>Pindahkan</span>
                     </Button>
 
@@ -2825,10 +3146,12 @@ onUnmounted(() => {
                         size="sm"
                         variant="outline"
                         :disabled="isZipping"
-                        class="h-9 gap-1.5 text-xs font-medium hover:bg-muted cursor-pointer"
+                        class="hover:bg-muted h-9 cursor-pointer gap-1.5 text-xs font-medium"
                         @click="startBulkZip"
                     >
-                        <Download class="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+                        <Download
+                            class="h-3.5 w-3.5 text-teal-600 dark:text-teal-400"
+                        />
                         <span>Unduh ZIP</span>
                     </Button>
 
@@ -2836,7 +3159,7 @@ onUnmounted(() => {
                         type="button"
                         size="sm"
                         variant="outline"
-                        class="h-9 gap-1.5 text-xs font-medium text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/40 cursor-pointer"
+                        class="h-9 cursor-pointer gap-1.5 text-xs font-medium text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/40"
                         @click="bulkDeleteOpen = true"
                     >
                         <Trash2 class="h-3.5 w-3.5" />
@@ -2844,12 +3167,12 @@ onUnmounted(() => {
                     </Button>
                 </div>
 
-                <div class="pl-1 border-l sm:pl-2">
+                <div class="border-l pl-1 sm:pl-2">
                     <Button
                         type="button"
                         variant="ghost"
                         size="icon"
-                        class="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer"
+                        class="text-muted-foreground hover:text-foreground h-8 w-8 cursor-pointer"
                         aria-label="Batalkan pilihan berkas"
                         title="Batalkan pilihan (Esc)"
                         @click="clearSelection"
@@ -2869,17 +3192,26 @@ onUnmounted(() => {
                             Pindahkan {{ selectedFileIds.length }} berkas
                         </DialogTitle>
                         <DialogDescription>
-                            Pilih folder tujuan untuk memindahkan seluruh berkas yang dipilih. Berkas di akun cloud storage tidak perlu diunggah ulang.
+                            Pilih folder tujuan untuk memindahkan seluruh berkas
+                            yang dipilih. Berkas di akun cloud storage tidak
+                            perlu diunggah ulang.
                         </DialogDescription>
                     </DialogHeader>
                     <div class="grid gap-2">
                         <Label for="bulk-move-target">Folder Tujuan</Label>
                         <Select v-model="bulkMoveTarget">
-                            <SelectTrigger id="bulk-move-target" class="text-xs">
-                                <SelectValue placeholder="Pilih folder tujuan" />
+                            <SelectTrigger
+                                id="bulk-move-target"
+                                class="text-xs"
+                            >
+                                <SelectValue
+                                    placeholder="Pilih folder tujuan"
+                                />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="root">Root (Tingkat Utama)</SelectItem>
+                                <SelectItem value="root"
+                                    >Root (Tingkat Utama)</SelectItem
+                                >
                                 <SelectItem
                                     v-for="f in allFolders"
                                     :key="f.id"
@@ -2915,21 +3247,38 @@ onUnmounted(() => {
                             Hapus {{ selectedFileIds.length }} berkas?
                         </DialogTitle>
                         <DialogDescription>
-                            Berkas yang dipilih akan dihapus secara permanen dari akun cloud storage penyimpanannya dan dari sistem. Tindakan ini tidak dapat dibatalkan.
+                            Berkas yang dipilih akan dihapus secara permanen
+                            dari akun cloud storage penyimpanannya dan dari
+                            sistem. Tindakan ini tidak dapat dibatalkan.
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div class="max-h-36 overflow-y-auto rounded-md border bg-muted/30 p-2.5 space-y-1 text-xs">
+                    <div
+                        class="bg-muted/30 max-h-36 space-y-1 overflow-y-auto rounded-md border p-2.5 text-xs"
+                    >
                         <div
                             v-for="file in selectedFilesPreview"
                             :key="file.id"
-                            class="flex items-center justify-between text-muted-foreground truncate"
+                            class="text-muted-foreground flex items-center justify-between truncate"
                         >
                             <span class="truncate">{{ file.name }}</span>
-                            <span class="tabular-nums shrink-0 ml-2">{{ formatBytes(file.size) }}</span>
+                            <span class="ml-2 shrink-0 tabular-nums">{{
+                                formatBytes(file.size)
+                            }}</span>
                         </div>
-                        <p v-if="selectedFileIds.length > selectedFilesPreview.length" class="text-[11px] text-muted-foreground italic pt-1 border-t">
-                            ...dan {{ selectedFileIds.length - selectedFilesPreview.length }} berkas lainnya
+                        <p
+                            v-if="
+                                selectedFileIds.length >
+                                selectedFilesPreview.length
+                            "
+                            class="text-muted-foreground border-t pt-1 text-[11px] italic"
+                        >
+                            ...dan
+                            {{
+                                selectedFileIds.length -
+                                selectedFilesPreview.length
+                            }}
+                            berkas lainnya
                         </p>
                     </div>
 
@@ -2955,23 +3304,30 @@ onUnmounted(() => {
                 <form class="space-y-5" @submit.prevent="saveItemLabels">
                     <DialogHeader>
                         <DialogTitle>
-                            Label {{ labelingTarget?.isFolder ? 'Folder' : 'Berkas' }}
+                            Label
+                            {{ labelingTarget?.isFolder ? 'Folder' : 'Berkas' }}
                         </DialogTitle>
                         <DialogDescription>
-                            Pilih label untuk mengelompokkan "{{ labelingTarget?.name }}" melintasi struktur hierarkis.
+                            Pilih label untuk mengelompokkan "{{
+                                labelingTarget?.name
+                            }}" melintasi struktur hierarkis.
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div v-if="allLabels.length === 0" class="rounded-md border border-dashed p-4 text-center">
-                        <p class="text-xs text-muted-foreground mb-3">
-                            Anda belum memiliki label. Buat label baru atau gunakan koleksi default.
+                    <div
+                        v-if="allLabels.length === 0"
+                        class="rounded-md border border-dashed p-4 text-center"
+                    >
+                        <p class="text-muted-foreground mb-3 text-xs">
+                            Anda belum memiliki label. Buat label baru atau
+                            gunakan koleksi default.
                         </p>
                         <div class="flex items-center justify-center gap-2">
                             <Button
                                 type="button"
                                 size="sm"
                                 variant="outline"
-                                class="text-xs h-8"
+                                class="h-8 text-xs"
                                 @click="seedDefaultLabels"
                             >
                                 Gunakan Label Default
@@ -2979,26 +3335,36 @@ onUnmounted(() => {
                             <Button
                                 type="button"
                                 size="sm"
-                                class="text-xs h-8 bg-teal-600 text-white hover:bg-teal-700 dark:bg-teal-500 dark:text-zinc-950 dark:hover:bg-teal-400"
-                                @click="itemLabelsOpen = false; manageLabelsOpen = true"
+                                class="h-8 bg-teal-600 text-xs text-white hover:bg-teal-700 dark:bg-teal-500 dark:text-zinc-950 dark:hover:bg-teal-400"
+                                @click="
+                                    itemLabelsOpen = false;
+                                    manageLabelsOpen = true;
+                                "
                             >
                                 Kelola Label
                             </Button>
                         </div>
                     </div>
 
-                    <div v-else class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                    <div v-else class="max-h-60 space-y-2 overflow-y-auto pr-1">
                         <div
                             v-for="lbl in allLabels"
                             :key="lbl.id"
-                            class="flex items-center justify-between p-2 rounded-md border transition-colors cursor-pointer"
-                            :class="labelingTarget?.labelIds.includes(lbl.id) ? 'bg-teal-50/50 dark:bg-teal-950/30 border-teal-500/50' : 'hover:bg-muted/40'"
+                            class="flex cursor-pointer items-center justify-between rounded-md border p-2 transition-colors"
+                            :class="
+                                labelingTarget?.labelIds.includes(lbl.id)
+                                    ? 'border-teal-500/50 bg-teal-50/50 dark:bg-teal-950/30'
+                                    : 'hover:bg-muted/40'
+                            "
                             @click="toggleTargetLabel(lbl.id)"
                         >
-                            <div class="flex items-center gap-2 min-w-0">
-                                <span class="h-2 w-2 rounded-full shrink-0" :class="getLabelDotClass(lbl.color)" />
+                            <div class="flex min-w-0 items-center gap-2">
                                 <span
-                                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border"
+                                    class="h-2 w-2 shrink-0 rounded-full"
+                                    :class="getLabelDotClass(lbl.color)"
+                                />
+                                <span
+                                    class="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium"
                                     :class="getLabelColorClasses(lbl.color)"
                                 >
                                     {{ lbl.name }}
@@ -3006,28 +3372,37 @@ onUnmounted(() => {
                             </div>
                             <input
                                 type="checkbox"
-                                :checked="labelingTarget?.labelIds.includes(lbl.id)"
+                                :checked="
+                                    labelingTarget?.labelIds.includes(lbl.id)
+                                "
                                 :aria-label="`Pilih label ${lbl.name}`"
-                                class="h-4 w-4 rounded border-border text-teal-600 focus:ring-teal-500 cursor-pointer accent-teal-600 dark:accent-teal-500"
+                                class="border-border h-4 w-4 cursor-pointer rounded text-teal-600 accent-teal-600 focus:ring-teal-500 dark:accent-teal-500"
                                 @click.stop="toggleTargetLabel(lbl.id)"
                             />
                         </div>
                     </div>
 
-                    <DialogFooter class="flex items-center justify-between sm:justify-between">
+                    <DialogFooter
+                        class="flex items-center justify-between sm:justify-between"
+                    >
                         <Button
                             type="button"
                             variant="ghost"
                             size="sm"
-                            class="text-xs text-muted-foreground hover:text-foreground"
-                            @click="itemLabelsOpen = false; manageLabelsOpen = true"
+                            class="text-muted-foreground hover:text-foreground text-xs"
+                            @click="
+                                itemLabelsOpen = false;
+                                manageLabelsOpen = true;
+                            "
                         >
-                            <Tags class="h-3.5 w-3.5 mr-1" />
+                            <Tags class="mr-1 h-3.5 w-3.5" />
                             <span>Kelola Label</span>
                         </Button>
                         <div class="flex items-center gap-2">
                             <DialogClose as-child>
-                                <Button type="button" variant="ghost" size="sm">Batal</Button>
+                                <Button type="button" variant="ghost" size="sm"
+                                    >Batal</Button
+                                >
                             </DialogClose>
                             <Button
                                 type="submit"
@@ -3050,20 +3425,24 @@ onUnmounted(() => {
                     <DialogHeader>
                         <DialogTitle>Kelola Label</DialogTitle>
                         <DialogDescription>
-                            Buat, ubah, atau hapus sistem label berwarna untuk mengelompokkan berkas secara fleksibel.
+                            Buat, ubah, atau hapus sistem label berwarna untuk
+                            mengelompokkan berkas secara fleksibel.
                         </DialogDescription>
                     </DialogHeader>
 
                     <!-- Create New Label Form -->
-                    <form class="rounded-lg border bg-muted/20 p-3 space-y-3" @submit.prevent="createLabel">
-                        <div class="text-xs font-semibold text-foreground">
+                    <form
+                        class="bg-muted/20 space-y-3 rounded-lg border p-3"
+                        @submit.prevent="createLabel"
+                    >
+                        <div class="text-foreground text-xs font-semibold">
                             Tambah Label Baru
                         </div>
-                        <div class="flex flex-col sm:flex-row gap-2">
+                        <div class="flex flex-col gap-2 sm:flex-row">
                             <Input
                                 v-model="newLabelName"
                                 placeholder="Nama label (misal: Pajak, Kerja...)"
-                                class="text-xs h-8 flex-1"
+                                class="h-8 flex-1 text-xs"
                                 maxlength="50"
                                 aria-label="Nama label baru"
                                 required
@@ -3071,32 +3450,43 @@ onUnmounted(() => {
                             <Button
                                 type="submit"
                                 size="sm"
-                                :disabled="isCreatingLabel || !newLabelName.trim()"
-                                class="h-8 text-xs bg-teal-600 text-white hover:bg-teal-700 dark:bg-teal-500 dark:text-zinc-950 dark:hover:bg-teal-400 shrink-0"
+                                :disabled="
+                                    isCreatingLabel || !newLabelName.trim()
+                                "
+                                class="h-8 shrink-0 bg-teal-600 text-xs text-white hover:bg-teal-700 dark:bg-teal-500 dark:text-zinc-950 dark:hover:bg-teal-400"
                             >
-                                <Plus class="h-3.5 w-3.5 mr-1" />
+                                <Plus class="mr-1 h-3.5 w-3.5" />
                                 <span>Tambah Label</span>
                             </Button>
                         </div>
                         <!-- Color Palette Options -->
                         <div class="space-y-1">
-                            <span class="text-[11px] text-muted-foreground">Pilih warna label:</span>
-                            <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+                            <span class="text-muted-foreground text-[11px]"
+                                >Pilih warna label:</span
+                            >
+                            <div
+                                class="flex flex-wrap items-center gap-1.5 pt-0.5"
+                            >
                                 <button
                                     v-for="color in PRESET_COLORS"
                                     :key="color.name"
                                     type="button"
-                                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] border cursor-pointer transition-all"
+                                    class="inline-flex cursor-pointer items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] transition-all"
                                     :class="[
                                         color.bg,
                                         color.text,
                                         color.border,
-                                        newLabelColor === color.name ? 'ring-2 ring-teal-500 font-bold scale-105 shadow-2xs' : 'opacity-70 hover:opacity-100'
+                                        newLabelColor === color.name
+                                            ? 'scale-105 font-bold shadow-2xs ring-2 ring-teal-500'
+                                            : 'opacity-70 hover:opacity-100',
                                     ]"
                                     :aria-label="`Pilih warna ${color.label}`"
                                     @click="newLabelColor = color.name"
                                 >
-                                    <span class="h-1.5 w-1.5 rounded-full" :class="color.dot" />
+                                    <span
+                                        class="h-1.5 w-1.5 rounded-full"
+                                        :class="color.dot"
+                                    />
                                     <span>{{ color.label }}</span>
                                 </button>
                             </div>
@@ -3106,7 +3496,9 @@ onUnmounted(() => {
                     <!-- Existing Labels List -->
                     <div class="space-y-2">
                         <div class="flex items-center justify-between">
-                            <span class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            <span
+                                class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                            >
                                 Daftar Label ({{ allLabels.length }})
                             </span>
                             <Button
@@ -3121,51 +3513,73 @@ onUnmounted(() => {
                             </Button>
                         </div>
 
-                        <div v-if="allLabels.length === 0" class="rounded-md border border-dashed p-6 text-center text-xs text-muted-foreground">
-                            Belum ada label dibuat. Tambahkan label pertama di atas atau klik "Buat Label Default".
+                        <div
+                            v-if="allLabels.length === 0"
+                            class="text-muted-foreground rounded-md border border-dashed p-6 text-center text-xs"
+                        >
+                            Belum ada label dibuat. Tambahkan label pertama di
+                            atas atau klik "Buat Label Default".
                         </div>
 
-                        <div v-else class="max-h-64 overflow-y-auto space-y-1.5 pr-1">
+                        <div
+                            v-else
+                            class="max-h-64 space-y-1.5 overflow-y-auto pr-1"
+                        >
                             <div
                                 v-for="lbl in allLabels"
                                 :key="lbl.id"
-                                class="flex items-center justify-between p-2 rounded-md border bg-card text-xs transition-colors"
+                                class="bg-card flex items-center justify-between rounded-md border p-2 text-xs transition-colors"
                             >
                                 <!-- If editing this label -->
                                 <template v-if="editingLabel?.id === lbl.id">
                                     <div class="flex-1 space-y-2 pr-2">
                                         <Input
                                             v-model="editLabelName"
-                                            class="text-xs h-7 w-full"
+                                            class="h-7 w-full text-xs"
                                             maxlength="50"
                                             aria-label="Ubah nama label"
                                             required
                                         />
-                                        <div class="flex flex-wrap items-center gap-1">
+                                        <div
+                                            class="flex flex-wrap items-center gap-1"
+                                        >
                                             <button
                                                 v-for="color in PRESET_COLORS"
                                                 :key="`edit-${color.name}`"
                                                 type="button"
-                                                class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] border cursor-pointer"
+                                                class="inline-flex cursor-pointer items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px]"
                                                 :class="[
                                                     color.bg,
                                                     color.text,
                                                     color.border,
-                                                    editLabelColor === color.name ? 'ring-2 ring-teal-500 font-bold' : 'opacity-70 hover:opacity-100'
+                                                    editLabelColor ===
+                                                    color.name
+                                                        ? 'font-bold ring-2 ring-teal-500'
+                                                        : 'opacity-70 hover:opacity-100',
                                                 ]"
-                                                @click="editLabelColor = color.name"
+                                                @click="
+                                                    editLabelColor = color.name
+                                                "
                                             >
-                                                <span class="h-1.5 w-1.5 rounded-full" :class="color.dot" />
+                                                <span
+                                                    class="h-1.5 w-1.5 rounded-full"
+                                                    :class="color.dot"
+                                                />
                                                 <span>{{ color.label }}</span>
                                             </button>
                                         </div>
                                     </div>
-                                    <div class="flex items-center gap-1 shrink-0">
+                                    <div
+                                        class="flex shrink-0 items-center gap-1"
+                                    >
                                         <Button
                                             type="button"
                                             size="sm"
-                                            class="h-7 px-2 text-xs bg-teal-600 text-white hover:bg-teal-700 dark:bg-teal-500 dark:text-zinc-950 dark:hover:bg-teal-400"
-                                            :disabled="isSavingEditLabel || !editLabelName.trim()"
+                                            class="h-7 bg-teal-600 px-2 text-xs text-white hover:bg-teal-700 dark:bg-teal-500 dark:text-zinc-950 dark:hover:bg-teal-400"
+                                            :disabled="
+                                                isSavingEditLabel ||
+                                                !editLabelName.trim()
+                                            "
                                             @click="saveEditLabel"
                                         >
                                             Simpan
@@ -3174,7 +3588,7 @@ onUnmounted(() => {
                                             type="button"
                                             variant="ghost"
                                             size="sm"
-                                            class="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                                            class="text-muted-foreground hover:text-foreground h-7 px-2 text-xs"
                                             @click="cancelEditLabel"
                                         >
                                             Batal
@@ -3184,24 +3598,39 @@ onUnmounted(() => {
 
                                 <!-- Normal view for this label -->
                                 <template v-else>
-                                    <div class="flex items-center gap-2 min-w-0">
-                                        <span class="h-2 w-2 rounded-full shrink-0" :class="getLabelDotClass(lbl.color)" />
+                                    <div
+                                        class="flex min-w-0 items-center gap-2"
+                                    >
                                         <span
-                                            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border"
-                                            :class="getLabelColorClasses(lbl.color)"
+                                            class="h-2 w-2 shrink-0 rounded-full"
+                                            :class="getLabelDotClass(lbl.color)"
+                                        />
+                                        <span
+                                            class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium"
+                                            :class="
+                                                getLabelColorClasses(lbl.color)
+                                            "
                                         >
                                             {{ lbl.name }}
                                         </span>
-                                        <span class="text-[11px] text-muted-foreground tabular-nums">
-                                            ({{ (lbl.files_count ?? 0) + (lbl.folders_count ?? 0) }} item)
+                                        <span
+                                            class="text-muted-foreground text-[11px] tabular-nums"
+                                        >
+                                            ({{
+                                                (lbl.files_count ?? 0) +
+                                                (lbl.folders_count ?? 0)
+                                            }}
+                                            item)
                                         </span>
                                     </div>
-                                    <div class="flex items-center gap-1 shrink-0">
+                                    <div
+                                        class="flex shrink-0 items-center gap-1"
+                                    >
                                         <Button
                                             type="button"
                                             variant="ghost"
                                             size="icon"
-                                            class="h-7 w-7 text-muted-foreground hover:text-foreground cursor-pointer"
+                                            class="text-muted-foreground hover:text-foreground h-7 w-7 cursor-pointer"
                                             :aria-label="`Ubah label ${lbl.name}`"
                                             title="Ubah label"
                                             @click="startEditLabel(lbl)"
@@ -3212,7 +3641,7 @@ onUnmounted(() => {
                                             type="button"
                                             variant="ghost"
                                             size="icon"
-                                            class="h-7 w-7 text-muted-foreground hover:text-red-600 cursor-pointer"
+                                            class="text-muted-foreground h-7 w-7 cursor-pointer hover:text-red-600"
                                             :aria-label="`Hapus label ${lbl.name}`"
                                             title="Hapus label"
                                             @click="deletingLabel = lbl"
@@ -3227,7 +3656,9 @@ onUnmounted(() => {
 
                     <DialogFooter>
                         <DialogClose as-child>
-                            <Button type="button" variant="outline" size="sm">Tutup</Button>
+                            <Button type="button" variant="outline" size="sm"
+                                >Tutup</Button
+                            >
                         </DialogClose>
                     </DialogFooter>
                 </div>
@@ -3250,7 +3681,9 @@ onUnmounted(() => {
                             Hapus label {{ deletingLabel?.name }}?
                         </DialogTitle>
                         <DialogDescription>
-                            Label ini akan dilepas dari semua berkas dan folder yang menggunakannya. Berkas dan foldernya sendiri tetap aman dan tidak dihapus.
+                            Label ini akan dilepas dari semua berkas dan folder
+                            yang menggunakannya. Berkas dan foldernya sendiri
+                            tetap aman dan tidak dihapus.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
@@ -3278,11 +3711,15 @@ onUnmounted(() => {
                             Beri Label {{ selectedFileIds.length }} Berkas
                         </DialogTitle>
                         <DialogDescription>
-                            Pilih label yang ingin disematkan ke seluruh berkas yang sedang dipilih.
+                            Pilih label yang ingin disematkan ke seluruh berkas
+                            yang sedang dipilih.
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div v-if="allLabels.length === 0" class="rounded-md border border-dashed p-4 text-center text-xs text-muted-foreground">
+                    <div
+                        v-if="allLabels.length === 0"
+                        class="text-muted-foreground rounded-md border border-dashed p-4 text-center text-xs"
+                    >
                         <p class="mb-2">Anda belum memiliki label.</p>
                         <Button
                             type="button"
@@ -3295,18 +3732,25 @@ onUnmounted(() => {
                         </Button>
                     </div>
 
-                    <div v-else class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                    <div v-else class="max-h-60 space-y-2 overflow-y-auto pr-1">
                         <div
                             v-for="lbl in allLabels"
                             :key="lbl.id"
-                            class="flex items-center justify-between p-2 rounded-md border transition-colors cursor-pointer"
-                            :class="bulkSelectedLabelIds.includes(lbl.id) ? 'bg-teal-50/50 dark:bg-teal-950/30 border-teal-500/50' : 'hover:bg-muted/40'"
+                            class="flex cursor-pointer items-center justify-between rounded-md border p-2 transition-colors"
+                            :class="
+                                bulkSelectedLabelIds.includes(lbl.id)
+                                    ? 'border-teal-500/50 bg-teal-50/50 dark:bg-teal-950/30'
+                                    : 'hover:bg-muted/40'
+                            "
                             @click="toggleBulkLabelSelection(lbl.id)"
                         >
-                            <div class="flex items-center gap-2 min-w-0">
-                                <span class="h-2 w-2 rounded-full shrink-0" :class="getLabelDotClass(lbl.color)" />
+                            <div class="flex min-w-0 items-center gap-2">
                                 <span
-                                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border"
+                                    class="h-2 w-2 shrink-0 rounded-full"
+                                    :class="getLabelDotClass(lbl.color)"
+                                />
+                                <span
+                                    class="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium"
                                     :class="getLabelColorClasses(lbl.color)"
                                 >
                                     {{ lbl.name }}
@@ -3316,7 +3760,7 @@ onUnmounted(() => {
                                 type="checkbox"
                                 :checked="bulkSelectedLabelIds.includes(lbl.id)"
                                 :aria-label="`Pilih label ${lbl.name}`"
-                                class="h-4 w-4 rounded border-border text-teal-600 focus:ring-teal-500 cursor-pointer accent-teal-600 dark:accent-teal-500"
+                                class="border-border h-4 w-4 cursor-pointer rounded text-teal-600 accent-teal-600 focus:ring-teal-500 dark:accent-teal-500"
                                 @click.stop="toggleBulkLabelSelection(lbl.id)"
                             />
                         </div>
@@ -3324,12 +3768,17 @@ onUnmounted(() => {
 
                     <DialogFooter>
                         <DialogClose as-child>
-                            <Button type="button" variant="ghost" size="sm">Batal</Button>
+                            <Button type="button" variant="ghost" size="sm"
+                                >Batal</Button
+                            >
                         </DialogClose>
                         <Button
                             type="submit"
                             size="sm"
-                            :disabled="isSubmittingBulkLabels || bulkSelectedLabelIds.length === 0"
+                            :disabled="
+                                isSubmittingBulkLabels ||
+                                bulkSelectedLabelIds.length === 0
+                            "
                             class="bg-teal-600 text-white hover:bg-teal-700 dark:bg-teal-500 dark:text-zinc-950 dark:hover:bg-teal-400"
                         >
                             Terapkan Label

@@ -109,8 +109,14 @@ function onThumbnailError(id: number): void {
     failedThumbnails.value[id] = true;
 }
 
-function hasValidThumbnail(file: NonNullable<DashboardProps['recent_files']>[number]): boolean {
-    return Boolean(file.has_thumbnail && file.thumbnail_url && !failedThumbnails.value[file.id]);
+function hasValidThumbnail(
+    file: NonNullable<DashboardProps['recent_files']>[number],
+): boolean {
+    return Boolean(
+        file.has_thumbnail &&
+        file.thumbnail_url &&
+        !failedThumbnails.value[file.id],
+    );
 }
 
 defineOptions({
@@ -1096,17 +1102,25 @@ function statusText(status?: string) {
                                         <div
                                             class="flex min-w-0 items-center gap-2.5"
                                         >
-                                            <template v-if="hasValidThumbnail(file)">
+                                            <template
+                                                v-if="hasValidThumbnail(file)"
+                                            >
                                                 <img
                                                     :src="file.thumbnail_url!"
                                                     :alt="file.name"
                                                     loading="lazy"
-                                                    class="h-7 w-7 shrink-0 rounded object-cover border border-border/60 bg-muted/40"
-                                                    @error="onThumbnailError(file.id)"
+                                                    class="border-border/60 bg-muted/40 h-7 w-7 shrink-0 rounded border object-cover"
+                                                    @error="
+                                                        onThumbnailError(
+                                                            file.id,
+                                                        )
+                                                    "
                                                 />
                                             </template>
                                             <template v-else>
-                                                <div class="flex h-7 w-7 shrink-0 items-center justify-center">
+                                                <div
+                                                    class="flex h-7 w-7 shrink-0 items-center justify-center"
+                                                >
                                                     <component
                                                         :is="
                                                             getFileIcon(
@@ -1218,12 +1232,14 @@ function statusText(status?: string) {
                                             :src="file.thumbnail_url!"
                                             :alt="file.name"
                                             loading="lazy"
-                                            class="h-7 w-7 shrink-0 rounded object-cover border border-border/60 bg-muted/40"
+                                            class="border-border/60 bg-muted/40 h-7 w-7 shrink-0 rounded border object-cover"
                                             @error="onThumbnailError(file.id)"
                                         />
                                     </template>
                                     <template v-else>
-                                        <div class="flex h-7 w-7 shrink-0 items-center justify-center">
+                                        <div
+                                            class="flex h-7 w-7 shrink-0 items-center justify-center"
+                                        >
                                             <component
                                                 :is="
                                                     getFileIcon(

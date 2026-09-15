@@ -3,13 +3,13 @@
 namespace Tests\Unit;
 
 use App\Models\StorageAccount;
+use App\Models\StorageProvider;
+use App\Models\User;
 use App\Services\Storage\Drivers\MegaDriver;
 use App\Services\Storage\StorageManager;
 use App\Values\RemoteItem;
-use Mega\Crypto\A32;
-use App\Models\StorageProvider;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Mega\Crypto\A32;
 use Mega\Crypto\Aes;
 use Mega\Crypto\Attr;
 use Mega\Crypto\Base64Url;
@@ -20,6 +20,7 @@ use Tests\TestCase;
 class MegaDriverTest extends TestCase
 {
     use RefreshDatabase;
+
     public function test_list_files_correctly_parses_nodes_and_hierarchy(): void
     {
         $masterKey = [1111, 2222, 3333, 4444];
@@ -97,12 +98,14 @@ class MegaDriverTest extends TestCase
             if (($payload['a'] ?? '') === 'f') {
                 return $simulatedResponse;
             }
+
             return [];
         });
 
         $storageManager = $this->createMock(StorageManager::class);
 
-        $driver = new class($storageManager, $mockConnector) extends MegaDriver {
+        $driver = new class($storageManager, $mockConnector) extends MegaDriver
+        {
             public function __construct(StorageManager $sm, private Connector $mockConn)
             {
                 parent::__construct($sm);
@@ -194,12 +197,14 @@ class MegaDriverTest extends TestCase
             if (($payload['a'] ?? '') === 'f') {
                 return $simulatedResponse;
             }
+
             return [];
         });
 
         $storageManager = $this->createMock(StorageManager::class);
 
-        $driver = new class($storageManager, $mockConnector) extends MegaDriver {
+        $driver = new class($storageManager, $mockConnector) extends MegaDriver
+        {
             public function __construct(StorageManager $sm, private Connector $mockConn)
             {
                 parent::__construct($sm);

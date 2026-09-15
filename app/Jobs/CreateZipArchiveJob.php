@@ -57,7 +57,7 @@ class CreateZipArchiveJob implements ShouldQueue
             @unlink($zipPath);
         }
 
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
             $job->update([
                 'status' => JobStatus::Failed,
@@ -95,8 +95,8 @@ class CreateZipArchiveJob implements ShouldQueue
                     if (isset($usedNames[$name])) {
                         $usedNames[$name]++;
                         $pi = pathinfo($name);
-                        $ext = isset($pi['extension']) && $pi['extension'] !== '' ? '.' . $pi['extension'] : '';
-                        $entryName = $pi['filename'] . ' (' . $usedNames[$name] . ')' . $ext;
+                        $ext = isset($pi['extension']) && $pi['extension'] !== '' ? '.'.$pi['extension'] : '';
+                        $entryName = $pi['filename'].' ('.$usedNames[$name].')'.$ext;
                     } else {
                         $usedNames[$name] = 0;
                         $entryName = $name;
@@ -155,7 +155,7 @@ class CreateZipArchiveJob implements ShouldQueue
 
     public static function zipPath(StorageManager $manager, FileJob $job): string
     {
-        return $manager->tempPath('bulk_zip_' . $job->id . '_' . md5((string) $job->created_at) . '.zip');
+        return $manager->tempPath('bulk_zip_'.$job->id.'_'.md5((string) $job->created_at).'.zip');
     }
 
     public function failed(Throwable $e): void

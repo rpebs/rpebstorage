@@ -7,19 +7,22 @@ Agregator cloud storage multi-provider self-hosted: Google Drive, Dropbox, OneDr
 - **PHP 8.3+ / 8.5** (Windows: Laragon di `C:\laragon\bin\php\php-8.5.3`), ekstensi: `openssl`, `pdo_sqlite` (atau `pdo_mysql`), `mbstring`, `curl`, `fileinfo`, `gd`, `zip`, `sodium`, `bcmath`
 - **Node 20+**
 - **Database & Queue**:
-  - **Local (Rekomendasi / Zero-Config)**: **SQLite** + **Database Queue**. Tidak perlu install MySQL maupun Redis!
-  - **Production / Laragon**: MySQL 8 & Redis.
+    - **Local (Rekomendasi / Zero-Config)**: **SQLite** + **Database Queue**. Tidak perlu install MySQL maupun Redis!
+    - **Production / Laragon**: MySQL 8 & Redis.
 - Horizon hanya berjalan di Linux/macOS (butuh `pcntl`/`posix`); di Windows dev secara otomatis memakai `queue:listen` dalam runner all-in-one.
 
 ## Setup Cepat di Windows (1-Klik)
 
 Untuk setup pertama kali di Windows:
+
 ```cmd
 .\setup.bat
 ```
+
 Script ini otomatis mendeteksi PHP 8.x Laragon, menyalin `.env`, membuat database SQLite, menjalankan migrasi & seeder, serta menginstall dependensi NPM & Composer.
 
 Untuk menjalankan server dev harian (Server + Queue Worker + Vite dalam **1 jendela terminal**):
+
 ```cmd
 .\dev.bat        # via Command Prompt / Double-click
 # atau jika menggunakan PowerShell:
@@ -140,6 +143,35 @@ Tanpa perubahan kode, hanya `.env`: `APP_ENV=production`, `APP_DEBUG=false`, `AP
 3. `php artisan telegram:listen` (via supervisor)
 4. cron `schedule:run`
 5. `php artisan migrate --force` + `composer install --no-dev` saat rilis
+
+## Backup & Restore Sistem (Migrasi Komputer / Laptop)
+
+Fitur ini memungkinkan Anda memindahkan seluruh instalasi rpebstorage ke komputer/laptop baru dalam satu berkas arsip terenkripsi password (AES-256) tanpa perlu login ulang OAuth (Google Drive, Dropbox, OneDrive, Mega) atau meminta ulang OTP Telegram.
+
+### Yang dicakup dalam arsip backup:
+
+1. **Metadata Database**: Virtual files, virtual folders, file chunks, storage accounts, labels, dan labelables.
+2. **Kunci Enkripsi (`APP_KEY`)**: Kunci enkripsi token kredensial cloud storage (`storage_accounts.credentials`).
+3. **Session File Telegram (MadelineProto)**: File sesi biner MTProto di `storage/app/telegram-sessions/`.
+4. **Kredensial OAuth App**: Client ID dan Secret provider cloud serta API ID/Hash Telegram dari `.env`.
+
+### Penggunaan Antarmuka Web:
+
+- **Ekspor (Device Lama)**: Masuk ke **Settings** -> **Backup & Restore** -> Masukkan master password pengaman -> Unduh berkas ZIP.
+- **Pulihkan (Device Baru)**:
+    - Di halaman login perangkat baru, klik tautan **"Pindah perangkat? Restore dari backup"** (atau buka `/restore`).
+    - Atau melalui **Settings** -> **Backup & Restore** jika sudah login.
+    - Unggah berkas ZIP dan masukkan master password.
+
+### Penggunaan CLI (Artisan):
+
+```bash
+# Ekspor backup ke file ZIP terenkripsi
+php artisan backup:export --password=MasterPassword123 --output=my-backup.zip
+
+# Pulihkan sistem dari berkas backup
+php artisan backup:restore my-backup.zip --password=MasterPassword123 --force
+```
 
 ## Test
 

@@ -51,7 +51,7 @@ class ThumbnailService
      */
     public function thumbnailDir(): string
     {
-        return storage_path('app/' . config('rpebs.thumbnails.path', 'thumbnails'));
+        return storage_path('app/'.config('rpebs.thumbnails.path', 'thumbnails'));
     }
 
     /**
@@ -72,10 +72,10 @@ class ThumbnailService
     {
         $dir = $this->thumbnailDir();
         $candidates = [
-            $dir . DIRECTORY_SEPARATOR . "{$file->id}.webp",
-            $dir . DIRECTORY_SEPARATOR . "{$file->id}.svg",
-            $dir . DIRECTORY_SEPARATOR . "{$file->id}.png",
-            $dir . DIRECTORY_SEPARATOR . "{$file->id}.jpg",
+            $dir.DIRECTORY_SEPARATOR."{$file->id}.webp",
+            $dir.DIRECTORY_SEPARATOR."{$file->id}.svg",
+            $dir.DIRECTORY_SEPARATOR."{$file->id}.png",
+            $dir.DIRECTORY_SEPARATOR."{$file->id}.jpg",
         ];
 
         foreach ($candidates as $candidate) {
@@ -110,8 +110,9 @@ class ThumbnailService
 
         // For SVG files: copy SVG directly to cache.
         if ($ext === 'svg' || $mime === 'image/svg+xml') {
-            $dest = $this->thumbnailDir() . DIRECTORY_SEPARATOR . "{$file->id}.svg";
+            $dest = $this->thumbnailDir().DIRECTORY_SEPARATOR."{$file->id}.svg";
             copy($sourceFilePath, $dest);
+
             return $dest;
         }
 
@@ -178,10 +179,10 @@ class ThumbnailService
     {
         $dir = $this->thumbnailDir();
         $candidates = [
-            $dir . DIRECTORY_SEPARATOR . "{$file->id}.webp",
-            $dir . DIRECTORY_SEPARATOR . "{$file->id}.svg",
-            $dir . DIRECTORY_SEPARATOR . "{$file->id}.png",
-            $dir . DIRECTORY_SEPARATOR . "{$file->id}.jpg",
+            $dir.DIRECTORY_SEPARATOR."{$file->id}.webp",
+            $dir.DIRECTORY_SEPARATOR."{$file->id}.svg",
+            $dir.DIRECTORY_SEPARATOR."{$file->id}.png",
+            $dir.DIRECTORY_SEPARATOR."{$file->id}.jpg",
         ];
 
         foreach ($candidates as $fileCandidate) {
@@ -249,6 +250,7 @@ class ThumbnailService
         $target = imagecreatetruecolor($targetWidth, $targetHeight);
         if (! $target) {
             imagedestroy($source);
+
             return null;
         }
 
@@ -273,7 +275,7 @@ class ThumbnailService
             $origHeight
         );
 
-        $dest = $this->thumbnailDir() . DIRECTORY_SEPARATOR . "{$fileId}.webp";
+        $dest = $this->thumbnailDir().DIRECTORY_SEPARATOR."{$fileId}.webp";
         $quality = (int) config('rpebs.thumbnails.quality', 80);
 
         $saved = imagewebp($target, $dest, $quality);

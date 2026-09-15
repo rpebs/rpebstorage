@@ -9,6 +9,7 @@ use App\Models\StorageProvider;
 use App\Models\User;
 use App\Models\VirtualFile;
 use App\Models\VirtualFolder;
+use App\Services\Storage\Drivers\GoogleDriveDriver;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -17,6 +18,7 @@ class StarAndLabelTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private StorageAccount $account;
 
     protected function setUp(): void
@@ -28,7 +30,7 @@ class StarAndLabelTest extends TestCase
         $provider = StorageProvider::create([
             'id' => 'gdrive',
             'name' => 'Google Drive',
-            'driver_class' => \App\Services\Storage\Drivers\GoogleDriveDriver::class,
+            'driver_class' => GoogleDriveDriver::class,
         ]);
 
         $this->account = StorageAccount::create([

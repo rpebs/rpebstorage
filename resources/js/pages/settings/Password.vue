@@ -34,7 +34,11 @@ defineOptions({
 
         <Form
             v-bind="PasswordController.update.form()"
-            :reset-on-success="['current_password', 'password', 'password_confirmation']"
+            :reset-on-success="[
+                'current_password',
+                'password',
+                'password_confirmation',
+            ]"
             class="space-y-6"
             v-slot="{ errors, processing }"
         >
@@ -74,11 +78,17 @@ defineOptions({
                     placeholder="Confirm password"
                     required
                 />
-                <InputError :message="errors.password_confirmation" class="mt-2" />
+                <InputError
+                    :message="errors.password_confirmation"
+                    class="mt-2"
+                />
             </div>
 
             <div class="flex items-center gap-4">
-                <Button :disabled="processing" data-test="update-password-button">
+                <Button
+                    :disabled="processing"
+                    data-test="update-password-button"
+                >
                     Save password
                 </Button>
             </div>

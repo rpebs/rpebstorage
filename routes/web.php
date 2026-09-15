@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\Auth\ProviderOAuthController;
+use App\Http\Controllers\Auth\RestoreController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FileManagerController;
+use App\Http\Controllers\LabelController;
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\MegaAuthController;
 use App\Http\Controllers\StorageAccountController;
@@ -12,6 +14,11 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return auth()->check() ? redirect()->route('dashboard') : redirect()->route('login');
 })->name('home');
+
+Route::middleware(['guest'])->group(function () {
+    Route::get('restore', [RestoreController::class, 'index'])->name('restore.index');
+    Route::post('restore', [RestoreController::class, 'restore'])->name('restore.perform');
+});
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -40,11 +47,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('files/zip/{job}/status', [FileManagerController::class, 'zipStatus'])->name('files.zip.status');
     Route::get('files/zip/{job}/download', [FileManagerController::class, 'zipDownload'])->name('files.zip.download');
 
-    Route::get('labels', [\App\Http\Controllers\LabelController::class, 'index'])->name('labels.index');
-    Route::post('labels', [\App\Http\Controllers\LabelController::class, 'store'])->name('labels.store');
-    Route::patch('labels/{label}', [\App\Http\Controllers\LabelController::class, 'update'])->name('labels.update');
-    Route::delete('labels/{label}', [\App\Http\Controllers\LabelController::class, 'destroy'])->name('labels.destroy');
-    Route::post('labels/defaults', [\App\Http\Controllers\LabelController::class, 'seedDefaults'])->name('labels.defaults');
+    Route::get('labels', [LabelController::class, 'index'])->name('labels.index');
+    Route::post('labels', [LabelController::class, 'store'])->name('labels.store');
+    Route::patch('labels/{label}', [LabelController::class, 'update'])->name('labels.update');
+    Route::delete('labels/{label}', [LabelController::class, 'destroy'])->name('labels.destroy');
+    Route::post('labels/defaults', [LabelController::class, 'seedDefaults'])->name('labels.defaults');
 
     Route::get('accounts', [StorageAccountController::class, 'index'])->name('accounts.index');
     Route::patch('accounts/{account}', [StorageAccountController::class, 'update'])->name('accounts.update');

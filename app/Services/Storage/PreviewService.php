@@ -79,7 +79,7 @@ class PreviewService
      */
     public function previewCacheDir(): string
     {
-        return storage_path('app/' . config('rpebs.preview_cache.path', 'preview_cache'));
+        return storage_path('app/'.config('rpebs.preview_cache.path', 'preview_cache'));
     }
 
     /**
@@ -99,10 +99,10 @@ class PreviewService
     public function getCachePath(VirtualFile $file): string
     {
         $ext = strtolower(pathinfo($file->name, PATHINFO_EXTENSION));
-        $hash = md5($file->id . '_' . $file->updated_at . '_' . $file->size);
+        $hash = md5($file->id.'_'.$file->updated_at.'_'.$file->size);
         $extPart = $ext !== '' ? ".{$ext}" : '';
 
-        return $this->previewCacheDir() . DIRECTORY_SEPARATOR . "preview_{$file->id}_{$hash}{$extPart}";
+        return $this->previewCacheDir().DIRECTORY_SEPARATOR."preview_{$file->id}_{$hash}{$extPart}";
     }
 
     /**
@@ -117,6 +117,7 @@ class PreviewService
 
         if ($file->is_chunked) {
             $merged = DownloadFileJob::mergedPath($this->manager, $file);
+
             return file_exists($merged) && filesize($merged) > 0;
         }
 
@@ -151,6 +152,7 @@ class PreviewService
             }
 
             DownloadFileJob::dispatch($file->id);
+
             return 'pending';
         }
 
@@ -236,7 +238,7 @@ class PreviewService
      */
     public function deleteCache(VirtualFile $file): void
     {
-        $pattern = $this->previewCacheDir() . DIRECTORY_SEPARATOR . "preview_{$file->id}_*";
+        $pattern = $this->previewCacheDir().DIRECTORY_SEPARATOR."preview_{$file->id}_*";
         $matches = glob($pattern);
         if ($matches) {
             foreach ($matches as $match) {
@@ -266,7 +268,7 @@ class PreviewService
             if ($f === '.' || $f === '..') {
                 continue;
             }
-            $full = $dir . DIRECTORY_SEPARATOR . $f;
+            $full = $dir.DIRECTORY_SEPARATOR.$f;
             if (is_file($full) && ($now - (filemtime($full) ?: $now)) > $ttl) {
                 if (@unlink($full)) {
                     $deleted++;

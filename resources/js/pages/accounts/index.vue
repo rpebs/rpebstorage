@@ -83,12 +83,16 @@ const scanningId = ref<number | null>(null);
 
 function triggerScan(accountId: number) {
     scanningId.value = accountId;
-    router.post(`/accounts/${accountId}/scan`, {}, {
-        preserveScroll: true,
-        onFinish: () => {
-            scanningId.value = null;
+    router.post(
+        `/accounts/${accountId}/scan`,
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                scanningId.value = null;
+            },
         },
-    });
+    );
 }
 
 const statusLabel: Record<string, string> = {
@@ -525,21 +529,36 @@ const groupedProviders = computed(() => {
                             class="flex shrink-0 items-center gap-2 self-end lg:self-center"
                         >
                             <!-- Pindai Berkas Dialog -->
-                            <Dialog v-if="account.status === 'active' && account.supports_scan !== false">
+                            <Dialog
+                                v-if="
+                                    account.status === 'active' &&
+                                    account.supports_scan !== false
+                                "
+                            >
                                 <DialogTrigger as-child>
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        class="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-                                        :disabled="account.is_scanning || scanningId === account.id"
+                                        class="text-muted-foreground hover:text-foreground h-8 gap-1.5 text-xs"
+                                        :disabled="
+                                            account.is_scanning ||
+                                            scanningId === account.id
+                                        "
                                     >
                                         <Loader2
-                                            v-if="account.is_scanning || scanningId === account.id"
+                                            v-if="
+                                                account.is_scanning ||
+                                                scanningId === account.id
+                                            "
                                             class="h-3.5 w-3.5 animate-spin text-teal-600 dark:text-teal-400"
                                         />
-                                        <FolderInput v-else class="h-3.5 w-3.5" />
+                                        <FolderInput
+                                            v-else
+                                            class="h-3.5 w-3.5"
+                                        />
                                         <span>{{
-                                            account.is_scanning || scanningId === account.id
+                                            account.is_scanning ||
+                                            scanningId === account.id
                                                 ? 'Memindai...'
                                                 : 'Pindai berkas'
                                         }}</span>
@@ -547,17 +566,33 @@ const groupedProviders = computed(() => {
                                 </DialogTrigger>
                                 <DialogContent>
                                     <DialogHeader>
-                                        <DialogTitle>Pindai & impor berkas</DialogTitle>
+                                        <DialogTitle
+                                            >Pindai & impor berkas</DialogTitle
+                                        >
                                         <DialogDescription>
-                                            Sistem akan membaca berkas dan folder yang ada di akun <strong>{{ account.alias }}</strong>, lalu menempatkannya ke dalam folder virtual <code>[{{ account.provider_label }} - {{ account.alias }}]</code>.
+                                            Sistem akan membaca berkas dan
+                                            folder yang ada di akun
+                                            <strong>{{ account.alias }}</strong
+                                            >, lalu menempatkannya ke dalam
+                                            folder virtual
+                                            <code
+                                                >[{{ account.provider_label }} -
+                                                {{ account.alias }}]</code
+                                            >.
                                         </DialogDescription>
                                     </DialogHeader>
-                                    <div class="rounded-md border border-neutral-200 bg-neutral-50 p-3 text-xs text-neutral-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
-                                        Pemindaian berjalan di latar belakang. Berkas yang sudah ada akan diperbarui tanpa membuat duplikat.
+                                    <div
+                                        class="rounded-md border border-neutral-200 bg-neutral-50 p-3 text-xs text-neutral-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400"
+                                    >
+                                        Pemindaian berjalan di latar belakang.
+                                        Berkas yang sudah ada akan diperbarui
+                                        tanpa membuat duplikat.
                                     </div>
                                     <DialogFooter class="gap-2 sm:gap-0">
                                         <DialogClose as-child>
-                                            <Button variant="ghost">Batal</Button>
+                                            <Button variant="ghost"
+                                                >Batal</Button
+                                            >
                                         </DialogClose>
                                         <DialogClose as-child>
                                             <Button

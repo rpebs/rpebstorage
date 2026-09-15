@@ -98,4 +98,9 @@ defineProps<{
             </Button>
         </div>
     </Form>
+
+    <div class="text-muted-foreground text-center text-sm">
+        Pindah perangkat?
+        <TextLink href="/restore">Restore dari backup</TextLink>
+    </div>
 </template>
