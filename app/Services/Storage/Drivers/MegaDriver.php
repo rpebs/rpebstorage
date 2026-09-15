@@ -13,6 +13,10 @@ use Http\Discovery\Psr18ClientDiscovery;
 use Mega\Client;
 use Mega\ClientFactory;
 use Mega\Config;
+use Mega\Crypto\A32;
+use Mega\Crypto\Attr;
+use Mega\Crypto\Base64Url;
+use Mega\Crypto\NodeKey;
 use Mega\Entity\Node;
 use Mega\Entity\Session;
 use Mega\Transport\Connector;
@@ -28,8 +32,13 @@ class MegaDriver implements StorageDriverInterface
     public function upload(StorageAccount $account, string $localFilePath, string $fileName): UploadResult
     {
         $client = $this->client($account);
-        $parentHandle = $account->credentials['root_handle'] ?? $this->resolveRootHandle($account);
+        $creds = $this->getCredentials($account);
+        $parentHandle = $creds['root_handle'] ?? $this->resolveRootHandle($account);
+
         $size = filesize($localFilePath);
+        if ($size === false) {
+            throw new RuntimeException("Tidak dapat membaca ukuran berkas lokal: {$localFilePath}");
+        }
 
         $node = $client->uploadFile($localFilePath, $parentHandle, $fileName, $size);
 
@@ -110,37 +119,152 @@ class MegaDriver implements StorageDriverInterface
 
     public function listFiles(StorageAccount $account): iterable
     {
-        $client = $this->client($account);
-        $rootHandle = $account->credentials['root_handle'] ?? $this->resolveRootHandle($account);
-        $nodes = $client->listNodes();
+        $creds = $this->getCredentials($account);
+        $connector = $this->connector($account);
 
-        foreach ($nodes as $node) {
-            $type = $node->getType();
-            $handle = $node->getHandle();
+        $response = $connector->send([
+            'a' => 'f',
+            'c' => 1,
+        ]);
 
-            if ($handle === $rootHandle) {
+        $rawNodes = $response['f'] ?? [];
+        if (! is_array($rawNodes)) {
+            return;
+        }
+
+        $rootHandle = $creds['root_handle'] ?? null;
+        if (empty($rootHandle)) {
+            foreach ($rawNodes as $raw) {
+                if (($raw['t'] ?? -1) === 2) {
+                    $rootHandle = (string) ($raw['h'] ?? '');
+                    if ($rootHandle !== '') {
+                        $creds['root_handle'] = $rootHandle;
+                        $account->forceFill(['credentials' => $creds])->save();
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (empty($rootHandle)) {
+            throw new RuntimeException('Tidak dapat menemukan direktori utama (Root Cloud Drive) di akun MEGA.');
+        }
+
+        $masterKey = $creds['master_key'];
+        if (is_string($masterKey)) {
+            $decoded = json_decode($masterKey, true);
+            if (is_array($decoded)) {
+                $masterKey = $decoded;
+            }
+        }
+        $masterKeyStr = is_array($masterKey) ? A32::toString($masterKey) : (string) $masterKey;
+
+        // Build parent lookup map for fast ancestor checking:
+        $parentMap = [];
+        foreach ($rawNodes as $raw) {
+            $h = (string) ($raw['h'] ?? '');
+            $p = (string) ($raw['p'] ?? '');
+            if ($h !== '') {
+                $parentMap[$h] = $p;
+            }
+        }
+
+        // Memoized ancestor check to verify if a handle is inside Cloud Drive ($rootHandle)
+        $isDescendantOfRootMemo = [$rootHandle => true];
+        $isDescendantOfRoot = function (string $handle) use (&$parentMap, &$isDescendantOfRootMemo): bool {
+            if (isset($isDescendantOfRootMemo[$handle])) {
+                return $isDescendantOfRootMemo[$handle];
+            }
+
+            $visited = [$handle => true];
+            $curr = $handle;
+
+            while (isset($parentMap[$curr]) && $parentMap[$curr] !== '') {
+                $parent = $parentMap[$curr];
+                if (isset($isDescendantOfRootMemo[$parent])) {
+                    $result = $isDescendantOfRootMemo[$parent];
+                    foreach (array_keys($visited) as $nodeHandle) {
+                        $isDescendantOfRootMemo[$nodeHandle] = $result;
+                    }
+
+                    return $result;
+                }
+
+                if (isset($visited[$parent])) {
+                    break;
+                }
+
+                $visited[$parent] = true;
+                $curr = $parent;
+            }
+
+            foreach (array_keys($visited) as $nodeHandle) {
+                $isDescendantOfRootMemo[$nodeHandle] = false;
+            }
+
+            return false;
+        };
+
+        foreach ($rawNodes as $raw) {
+            $type = array_key_exists('t', $raw) ? (int) $raw['t'] : -1;
+            if ($type !== Node::TYPE_FILE && $type !== Node::TYPE_FOLDER) {
                 continue;
             }
 
+            $handle = (string) ($raw['h'] ?? '');
+            $parentHandle = (string) ($raw['p'] ?? '');
+            $rawKey = (string) ($raw['k'] ?? '');
+
+            if ($handle === '' || $handle === $rootHandle || $rawKey === '') {
+                continue;
+            }
+
+            // Only include items that are within Root Cloud Drive
+            if ($parentHandle !== $rootHandle && ! $isDescendantOfRoot($parentHandle)) {
+                continue;
+            }
+
+            try {
+                $nodeKey = NodeKey::decryptNodeKey($rawKey, $masterKeyStr);
+            } catch (\Throwable) {
+                continue;
+            }
+
+            $name = '';
+            if (! empty($raw['a'])) {
+                try {
+                    $attrCiphertext = Base64Url::decode((string) $raw['a']);
+                    $attrs = Attr::decrypt($attrCiphertext, $nodeKey);
+                    $name = (string) ($attrs['n'] ?? '');
+                } catch (\Throwable) {
+                    // Name decryption failed
+                }
+            }
+
+            if ($name === '') {
+                $name = 'Untitled';
+            }
+
+            $parentId = ($parentHandle === $rootHandle || $parentHandle === '') ? null : $parentHandle;
+
             if ($type === Node::TYPE_FOLDER) {
-                $parentHandle = $node->getParentHandle();
                 yield new RemoteItem(
                     id: $handle,
-                    name: $node->getName(),
+                    name: $name,
                     isFolder: true,
-                    parentId: $parentHandle === $rootHandle ? null : $parentHandle,
+                    parentId: $parentId,
                 );
-            } elseif ($type === Node::TYPE_FILE) {
-                $parentHandle = $node->getParentHandle();
-                $remoteRef = $handle.'|'.$node->getEncryptedKey();
+            } else {
+                $size = isset($raw['s']) ? (int) $raw['s'] : 0;
+                $remoteRef = $handle.'|'.$rawKey;
 
                 yield new RemoteItem(
                     id: $remoteRef,
-                    name: $node->getName(),
+                    name: $name,
                     isFolder: false,
-                    size: $node->getSize(),
+                    size: $size,
                     mimeType: null,
-                    parentId: $parentHandle === $rootHandle ? null : $parentHandle,
+                    parentId: $parentId,
                 );
             }
         }
@@ -158,10 +282,9 @@ class MegaDriver implements StorageDriverInterface
             if (($raw['t'] ?? -1) === 2) {
                 $rootHandle = (string) ($raw['h'] ?? '');
                 if ($rootHandle !== '') {
-                    $creds = $account->credentials;
+                    $creds = $this->getCredentials($account);
                     $creds['root_handle'] = $rootHandle;
-                    $account->credentials = $creds;
-                    $account->save();
+                    $account->forceFill(['credentials' => $creds])->save();
 
                     return $rootHandle;
                 }
@@ -173,15 +296,23 @@ class MegaDriver implements StorageDriverInterface
 
     public function client(StorageAccount $account): Client
     {
-        $creds = $account->credentials;
-        if (! is_array($creds) || empty($creds['session_id']) || empty($creds['master_key'])) {
-            throw new RuntimeException('Kredensial akun MEGA tidak lengkap atau rusak.');
+        $creds = $this->getCredentials($account);
+
+        $masterKey = $creds['master_key'];
+        if (is_string($masterKey)) {
+            $decoded = json_decode($masterKey, true);
+            if (is_array($decoded)) {
+                $masterKey = $decoded;
+            }
+        }
+        if (! is_array($masterKey)) {
+            $masterKey = A32::fromString($masterKey);
         }
 
         $session = new Session(
-            $creds['master_key'],
-            $creds['session_id'],
-            $creds['private_key'] ?? []
+            $masterKey,
+            (string) $creds['session_id'],
+            isset($creds['private_key']) && is_array($creds['private_key']) ? $creds['private_key'] : []
         );
 
         $client = (new ClientFactory)->create();
@@ -192,7 +323,7 @@ class MegaDriver implements StorageDriverInterface
 
     public function connector(StorageAccount $account): Connector
     {
-        $creds = $account->credentials;
+        $creds = $this->getCredentials($account);
         $httpClient = Psr18ClientDiscovery::find();
         $requestFactory = Psr17FactoryDiscovery::findRequestFactory();
         $streamFactory = Psr17FactoryDiscovery::findStreamFactory();
@@ -206,9 +337,23 @@ class MegaDriver implements StorageDriverInterface
         );
 
         if (! empty($creds['session_id'])) {
-            $connector->setSessionId($creds['session_id']);
+            $connector->setSessionId((string) $creds['session_id']);
         }
 
         return $connector;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function getCredentials(StorageAccount $account): array
+    {
+        /** @var mixed $creds */
+        $creds = $account->credentials;
+        if (! is_array($creds) || empty($creds['session_id']) || empty($creds['master_key'])) {
+            throw new RuntimeException('Kredensial akun MEGA tidak lengkap atau rusak.');
+        }
+
+        return $creds;
     }
 }
