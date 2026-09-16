@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\Storage\Drivers\MegaDriver;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\DevCommands;
 use Illuminate\Support\Facades\Date;
@@ -24,8 +25,25 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->configureSslCertificates();
         $this->configureDefaults();
         $this->configureDevCommands();
+    }
+
+    /**
+     * Ensure SSL CA bundle environment variables are populated for cURL and OpenSSL.
+     */
+    protected function configureSslCertificates(): void
+    {
+        $caBundle = MegaDriver::resolveCaBundlePath();
+        if ($caBundle !== null) {
+            putenv("SSL_CERT_FILE={$caBundle}");
+            putenv("CURL_CA_BUNDLE={$caBundle}");
+            $_ENV['SSL_CERT_FILE'] = $caBundle;
+            $_ENV['CURL_CA_BUNDLE'] = $caBundle;
+            $_SERVER['SSL_CERT_FILE'] = $caBundle;
+            $_SERVER['CURL_CA_BUNDLE'] = $caBundle;
+        }
     }
 
     /**

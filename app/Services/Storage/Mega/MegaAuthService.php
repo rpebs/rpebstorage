@@ -2,8 +2,8 @@
 
 namespace App\Services\Storage\Mega;
 
+use App\Services\Storage\Drivers\MegaDriver;
 use Http\Discovery\Psr17FactoryDiscovery;
-use Http\Discovery\Psr18ClientDiscovery;
 use Illuminate\Support\Facades\Log;
 use Mega\Config;
 use Mega\Crypto\Aes;
@@ -21,7 +21,7 @@ class MegaAuthService
     {
         return new Connector(
             Config::SERVER_GLOBAL,
-            Psr18ClientDiscovery::find(),
+            MegaDriver::resolveHttpClient(),
             Psr17FactoryDiscovery::findRequestFactory(),
             Psr17FactoryDiscovery::findStreamFactory(),
             new NullLogger

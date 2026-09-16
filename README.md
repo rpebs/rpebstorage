@@ -11,17 +11,35 @@ Agregator cloud storage multi-provider self-hosted: Google Drive, Dropbox, OneDr
     - **Production / Laragon**: MySQL 8 & Redis.
 - Horizon hanya berjalan di Linux/macOS (butuh `pcntl`/`posix`); di Windows dev secara otomatis memakai `queue:listen` dalam runner all-in-one.
 
-## Setup Cepat di Windows (1-Klik)
+## Menjalankan Aplikasi di Windows
 
-Untuk setup pertama kali di Windows:
+### 1. Portable Bundle (Zero-Install / 1-Klik) — Rekomendasi Pindah Device
+
+Jika Anda berpindah antar komputer/laptop Windows dan **tidak ingin menginstal** software pendukung apa pun (tanpa Laragon, tanpa Composer, tanpa Node.js/NPM, tanpa Redis installer):
 
 ```cmd
-.\setup.bat
+.\start.bat        # Cukup klik ganda start.bat di Windows Explorer!
 ```
 
-Script ini otomatis mendeteksi PHP 8.x Laragon, menyalin `.env`, membuat database SQLite, menjalankan migrasi & seeder, serta menginstall dependensi NPM & Composer.
+Script ini otomatis:
+1. Menggunakan **PHP 8.5 Portable** dari folder `runtime\php` (sudah include curl, openssl, sqlite, bcmath, sodium, cacert SSL).
+2. Menyalakan **Redis Server Portable** di background (`runtime\redis`).
+3. Menggunakan database **SQLite** (`database\database.sqlite`) yang mandiri di dalam folder project.
+4. Menyalakan **Queue Worker** di background (log: `storage\logs\queue.log`).
+5. Menyalakan **Telegram MTProto Daemon** di background jika kredensial Telegram terisi (log: `storage\logs\telegram.log`).
+6. Menjalankan **Web Server** pada port **8123** dan otomatis membuka browser ke:
+   > **Akses web:** [http://127.0.0.1:8123](http://127.0.0.1:8123)
 
-Untuk menjalankan server dev harian (Server + Queue Worker + Vite dalam **1 jendela terminal**):
+Untuk mematikan semua layanan:
+```cmd
+.\stop.bat         # Cukup klik ganda stop.bat untuk menghentikan semua background service
+```
+
+---
+
+### 2. Mode Pengembangan (Dev Server + Vite Hot-Reload)
+
+Jika Anda ingin melakukan kustomisasi kode frontend/backend dan membutuhkan Vite HMR:
 
 ```cmd
 .\dev.bat        # via Command Prompt / Double-click
@@ -31,7 +49,7 @@ Untuk menjalankan server dev harian (Server + Queue Worker + Vite dalam **1 jend
 composer dev
 ```
 
-> **Akses web:** [http://127.0.0.1:8000](http://127.0.0.1:8000)  
+> **Akses web:** [http://127.0.0.1:8123](http://127.0.0.1:8123)  
 > Akun login default: `admin@rpebstorage.local` / `change-me-now` (dapat diubah di `.env`).
 
 ---
@@ -53,7 +71,7 @@ User pertama dibuat otomatis dari seeder (`php artisan db:seed`) memakai `ADMIN_
 
 Semua variabel di bawah ada di `.env` (template di `.env.example`). Setelah mengubah `.env`, selalu jalankan `php artisan config:clear` (dan `php artisan optimize:clear` kalau pernah `php artisan optimize`). Nilai `APP_URL` menentukan redirect URI yang didaftarkan, jadi samakan.
 
-Pastikan `APP_URL` sudah sesuai sebelum mendaftarkan redirect URI di masing-masing portal. Dev default: `APP_URL=http://127.0.0.1:8000`.
+Pastikan `APP_URL` sudah sesuai sebelum mendaftarkan redirect URI di masing-masing portal. Dev default: `APP_URL=http://127.0.0.1:8123`.
 
 ### Google Drive (`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`)
 
@@ -61,15 +79,15 @@ Pastikan `APP_URL` sudah sesuai sebelum mendaftarkan redirect URI di masing-masi
 2. **APIs & Services -> Library** -> enable **Google Drive API**.
 3. **APIs & Services -> OAuth consent screen** -> External -> isi app name + email -> scopes: `drive` (dan `openid`, `email`, `profile` otomatis). Tambahkan akun kamu di **Test users** selagi status Testing.
 4. **APIs & Services -> Credentials -> Create Credentials -> OAuth client ID** -> type **Web application**.
-    - Authorized JavaScript origins: `http://127.0.0.1:8000` (opsional).
-    - **Authorized redirect URIs**: `http://127.0.0.1:8000/accounts/callback/google_drive`
+    - Authorized JavaScript origins: `http://127.0.0.1:8123` (opsional).
+    - **Authorized redirect URIs**: `http://127.0.0.1:8123/accounts/callback/google_drive`
     - Production: tambahkan juga `https://domainmu/accounts/callback/google_drive`.
 5. Salin Client ID + Client Secret ke `.env`.
 
 ### Dropbox (`DROPBOX_CLIENT_ID` / `DROPBOX_CLIENT_SECRET`)
 
 1. https://www.dropbox.com/developers/apps -> **Create app** -> **Dropbox API** -> scope **Full Dropbox** (atau App folder).
-2. Di halaman app: **OAuth2** -> **Add redirect URI**: `http://127.0.0.1:8000/accounts/callback/dropbox` (dan versi production).
+2. Di halaman app: **OAuth2** -> **Add redirect URI**: `http://127.0.0.1:8123/accounts/callback/dropbox` (dan versi production).
 3. **Grant type**: Authorization code (dengan refresh token). Sistem sudah memakai `token_access_type=offline`, jadi tidak perlu diubah manual.
 4. Salin **App key** -> `DROPBOX_CLIENT_ID`, **App secret** -> `DROPBOX_CLIENT_SECRET`.
 
@@ -77,7 +95,7 @@ Pastikan `APP_URL` sudah sesuai sebelum mendaftarkan redirect URI di masing-masi
 
 1. https://entra.microsoft.com/ (atau portal.azure.com) -> **App registrations -> New registration**.
 2. Supported account types: "Accounts in any organizational directory and personal Microsoft accounts" (perlu buat akun personal OneDrive).
-3. **Redirect URI**: platform **Web**, `http://127.0.0.1:8000/accounts/callback/onedrive` (+ production).
+3. **Redirect URI**: platform **Web**, `http://127.0.0.1:8123/accounts/callback/onedrive` (+ production).
 4. **API permissions -> Add a permission -> Microsoft Graph -> Delegated**: `Files.ReadWrite.All` dan `offline_access` (wajib untuk refresh token).
 5. **Certificates & secrets -> New client secret** -> salin nilainya.
 6. `MICROSOFT_CLIENT_ID` = Application (client) ID, `MICROSOFT_CLIENT_SECRET` = client secret.
@@ -98,7 +116,7 @@ Pastikan `APP_URL` sudah sesuai sebelum mendaftarkan redirect URI di masing-masi
 ### Ringkas variabel `.env`
 
 ```dotenv
-APP_URL=http://127.0.0.1:8000
+APP_URL=http://127.0.0.1:8123
 
 GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...

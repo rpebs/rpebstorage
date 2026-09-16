@@ -8,6 +8,8 @@ use App\Services\Storage\StorageManager;
 use App\Values\QuotaUsage;
 use App\Values\RemoteItem;
 use App\Values\UploadResult;
+use GuzzleHttp\Client as GuzzleClient;
+use GuzzleHttp\RequestOptions;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Discovery\Psr18ClientDiscovery;
 use Mega\Client;
@@ -20,6 +22,7 @@ use Mega\Crypto\NodeKey;
 use Mega\Entity\Node;
 use Mega\Entity\Session;
 use Mega\Transport\Connector;
+use Psr\Http\Client\ClientInterface;
 use Psr\Log\NullLogger;
 use RuntimeException;
 
@@ -315,7 +318,9 @@ class MegaDriver implements StorageDriverInterface
             isset($creds['private_key']) && is_array($creds['private_key']) ? $creds['private_key'] : []
         );
 
-        $client = (new ClientFactory)->create();
+        $client = (new ClientFactory)
+            ->withHttpClient(static::resolveHttpClient())
+            ->create();
         $client->restoreSession($session);
 
         return $client;
@@ -324,7 +329,7 @@ class MegaDriver implements StorageDriverInterface
     public function connector(StorageAccount $account): Connector
     {
         $creds = $this->getCredentials($account);
-        $httpClient = Psr18ClientDiscovery::find();
+        $httpClient = static::resolveHttpClient();
         $requestFactory = Psr17FactoryDiscovery::findRequestFactory();
         $streamFactory = Psr17FactoryDiscovery::findStreamFactory();
 
@@ -341,6 +346,39 @@ class MegaDriver implements StorageDriverInterface
         }
 
         return $connector;
+    }
+
+    public static function resolveCaBundlePath(): ?string
+    {
+        $candidates = [
+            ini_get('curl.cainfo'),
+            ini_get('openssl.cafile'),
+            getenv('SSL_CERT_FILE') ?: null,
+            getenv('CURL_CA_BUNDLE') ?: null,
+            base_path('runtime/php/cacert.pem'),
+            base_path('cacert.pem'),
+            'C:/laragon/etc/ssl/cacert.pem',
+        ];
+
+        foreach ($candidates as $path) {
+            if ($path && file_exists($path) && is_file($path)) {
+                return $path;
+            }
+        }
+
+        return null;
+    }
+
+    public static function resolveHttpClient(): ClientInterface
+    {
+        $caBundle = static::resolveCaBundlePath();
+        if ($caBundle !== null) {
+            return new GuzzleClient([
+                RequestOptions::VERIFY => $caBundle,
+            ]);
+        }
+
+        return Psr18ClientDiscovery::find();
     }
 
     /**
