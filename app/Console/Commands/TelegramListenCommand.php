@@ -2,6 +2,9 @@
 
 namespace App\Console\Commands;
 
+use Amp\CancelledException;
+use Amp\Future\UnhandledFutureError;
+use Amp\SignalException;
 use App\Models\FileJob;
 use App\Models\StorageAccount;
 use App\Services\Storage\Concerns\HandlesChunking;
@@ -15,11 +18,14 @@ use danog\MadelineProto\LocalFile;
 use danog\MadelineProto\Logger;
 use danog\MadelineProto\Magic;
 use danog\MadelineProto\RPCErrorException;
+use danog\MadelineProto\SecurityException;
 use danog\MadelineProto\Settings;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use Predis\ClientInterface;
+use Revolt\EventLoop;
 use Throwable;
 
 use function Amp\async;
@@ -50,6 +56,8 @@ class TelegramListenCommand extends Command
             return self::FAILURE;
         }
 
+        $this->registerLoopErrorHandler();
+
         $this->redis = Redis::connection()->client();
 
         $this->info('telegram:listen berjalan. Menunggu RPC...');
@@ -79,6 +87,32 @@ class TelegramListenCommand extends Command
                 report($e);
             }
         }
+    }
+
+    private function registerLoopErrorHandler(): void
+    {
+        EventLoop::setErrorHandler(static function (Throwable $e): void {
+            if ($e instanceof UnhandledFutureError) {
+                $e = $e->getPrevious() ?? $e;
+            }
+
+            // Normal cancellation of background event loops, pings, or timeouts
+            if ($e instanceof CancelledException) {
+                return;
+            }
+
+            if ($e instanceof SecurityException || $e instanceof SignalException) {
+                throw $e;
+            }
+
+            if (str_starts_with($e->getMessage(), 'Could not connect to DC ')) {
+                throw $e;
+            }
+
+            Log::warning('Telegram daemon event loop warning: '.$e->getMessage(), [
+                'exception' => $e,
+            ]);
+        });
     }
 
     /**
@@ -491,30 +525,43 @@ class TelegramListenCommand extends Command
 
     private function sendWithThrottle(API $mp, int $peerId, string $path, string $name): int
     {
-        sleep((int) config('rpebs.telegram.upload_delay'));
+        $delay = (int) config('rpebs.telegram.upload_delay');
+        if ($delay > 0) {
+            async(fn () => \Amp\delay($delay))->await();
+        }
 
-        try {
-            $message = async(fn () => $mp->sendDocument(
-                peer: $peerId,
-                file: new LocalFile($path),
-                fileName: $name,
-                silent: true,
-            ))->await();
-        } catch (RPCErrorException $e) {
-            if (! str_contains($e->getMessage(), 'FLOOD_WAIT_')) {
-                throw $e;
+        $message = null;
+
+        foreach ([1, 2] as $attempt) {
+            try {
+                $message = async(fn () => $mp->sendDocument(
+                    peer: $peerId,
+                    file: new LocalFile($path),
+                    fileName: $name,
+                    silent: true,
+                ))->await();
+
+                break;
+            } catch (RPCErrorException $e) {
+                if (! str_contains($e->getMessage(), 'FLOOD_WAIT_')) {
+                    throw $e;
+                }
+
+                // FLOOD_WAIT_<seconds>: back off once, then retry.
+                $wait = (int) (preg_replace('/\D/', '', $e->getMessage()) ?: 15);
+                async(fn () => \Amp\delay(min($wait, 120)))->await();
+
+                if ($attempt === 2) {
+                    throw $e;
+                }
+            } catch (CancelledException $e) {
+                if ($attempt === 2) {
+                    throw $e;
+                }
+
+                // Temporary connection cancellation/reconnect; back off briefly and retry.
+                async(fn () => \Amp\delay(2))->await();
             }
-
-            // FLOOD_WAIT_<seconds>: back off once, then retry.
-            $wait = (int) (preg_replace('/\D/', '', $e->getMessage()) ?: 15);
-            sleep(min($wait, 120));
-
-            $message = async(fn () => $mp->sendDocument(
-                peer: $peerId,
-                file: new LocalFile($path),
-                fileName: $name,
-                silent: true,
-            ))->await();
         }
 
         $messageId = $this->extractMessageId($message);
