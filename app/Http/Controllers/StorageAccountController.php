@@ -8,7 +8,7 @@ use App\Jobs\ScanStorageAccountJob;
 use App\Models\FileJob;
 use App\Models\StorageAccount;
 use App\Models\StorageProvider;
-use App\Services\Storage\OAuth\ProviderOAuth;
+use App\Services\Settings\ProviderSettings;
 use App\Services\Telegram\TelegramRpc;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Http\Request;
@@ -18,6 +18,7 @@ class StorageAccountController extends Controller
 {
     public function index(Request $request)
     {
+        $settings = app(ProviderSettings::class);
         $activeScanAccounts = FileJob::where('user_id', $request->user()->id)
             ->where('type', 'scan')
             ->whereIn('status', [JobStatus::Pending->value, JobStatus::Processing->value])
@@ -46,12 +47,17 @@ class StorageAccountController extends Controller
             ]);
 
         $providers = StorageProvider::where('is_active', true)->orderBy('id')->get()
-            ->map(fn (StorageProvider $provider) => [
-                'name' => $provider->name,
-                'label' => $provider->label(),
-                'connectable' => in_array($provider->name, ['telegram', 'mega'], true) || ProviderOAuth::supported($provider->name),
-                'credentials_missing' => ! in_array($provider->name, ['telegram', 'mega'], true) && ! ProviderOAuth::supported($provider->name),
-            ]);
+            ->map(function (StorageProvider $provider) use ($settings): array {
+                // MEGA login memakai kredensial akun (email + password), bukan kredensial aplikasi.
+                $configured = $provider->name === 'mega' || $settings->configured($provider->name);
+
+                return [
+                    'name' => $provider->name,
+                    'label' => $provider->label(),
+                    'connectable' => $configured,
+                    'credentials_missing' => ! $configured,
+                ];
+            });
 
         return Inertia::render('accounts/index', [
             'accounts' => $accounts,

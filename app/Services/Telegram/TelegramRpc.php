@@ -42,7 +42,7 @@ class TelegramRpc
     public function call(string $action, array $payload = [], int $timeout = 900): array
     {
         if (! self::daemonConfigured()) {
-            throw new TelegramRpcException('TELEGRAM_API_ID / TELEGRAM_API_HASH belum diisi di .env');
+            throw new TelegramRpcException('API ID / API Hash Telegram belum diisi. Buka Settings → Provider.');
         }
 
         $id = uniqid('rpc_', true);

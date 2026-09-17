@@ -21,9 +21,9 @@ class ProviderOAuthController extends Controller
     public function redirect(Request $request, StorageProvider $provider)
     {
         if (! ProviderOAuth::supported($provider->name)) {
-            return $this->toast([
+            return $this->toastRoute('providers.edit', [
                 'type' => 'error',
-                'message' => "Kredensial OAuth untuk {$provider->label()} belum diisi di .env",
+                'message' => "Kredensial OAuth {$provider->label()} belum lengkap. Isi di Settings → Provider.",
             ]);
         }
 

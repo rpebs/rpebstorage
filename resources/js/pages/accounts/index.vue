@@ -32,6 +32,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { formatBytes } from '@/lib/format';
+import { edit as editProviders } from '@/routes/providers';
 import {
     Archive,
     Cloud,
@@ -44,6 +45,7 @@ import {
     Plus,
     Send,
     Server,
+    Settings,
     Trash2,
 } from '@lucide/vue';
 
@@ -123,19 +125,6 @@ function getProviderIcon(providerName: string) {
             return Cloud;
         default:
             return Cloud;
-    }
-}
-
-function getEnvSnippet(providerName: string): string[] {
-    switch (providerName) {
-        case 'google_drive':
-            return ['GOOGLE_CLIENT_ID=...', 'GOOGLE_CLIENT_SECRET=...'];
-        case 'dropbox':
-            return ['DROPBOX_CLIENT_ID=...', 'DROPBOX_CLIENT_SECRET=...'];
-        case 'onedrive':
-            return ['MICROSOFT_CLIENT_ID=...', 'MICROSOFT_CLIENT_SECRET=...'];
-        default:
-            return [];
     }
 }
 
@@ -822,41 +811,25 @@ const groupedProviders = computed(() => {
                                 <p
                                     class="font-medium text-amber-900 dark:text-amber-200"
                                 >
-                                    Kredensial OAuth belum dikonfigurasi
+                                    Kredensial {{ provider.label }} belum
+                                    lengkap
                                 </p>
                                 <p
                                     class="leading-relaxed text-amber-700 dark:text-amber-300/90"
                                 >
-                                    Untuk menghubungkan akun
-                                    {{ provider.label }}, lengkapi variabel
-                                    berikut di dalam berkas
-                                    <code
-                                        class="rounded bg-amber-100 px-1 py-0.5 font-mono text-[11px] dark:bg-amber-900/60"
-                                        >.env</code
-                                    >:
+                                    Isi kredensial aplikasinya di Settings →
+                                    Kredensial Provider, lalu kembali ke halaman
+                                    ini untuk menghubungkan akun.
                                 </p>
                             </div>
                         </div>
 
-                        <div
-                            class="space-y-1 overflow-x-auto rounded bg-neutral-900 p-3 font-mono text-xs text-neutral-100"
-                        >
-                            <div
-                                v-for="line in getEnvSnippet(provider.name)"
-                                :key="line"
-                            >
-                                {{ line }}
-                            </div>
-                        </div>
-
-                        <p class="text-muted-foreground text-[11px]">
-                            Setelah mengisi berkas
-                            <code class="font-mono">.env</code>, jalankan
-                            <code class="bg-muted rounded px-1 py-0.5 font-mono"
-                                >php artisan config:clear</code
-                            >
-                            di terminal.
-                        </p>
+                        <Button size="sm" variant="outline" as-child>
+                            <a :href="editProviders().url">
+                                <Settings class="h-3.5 w-3.5" />
+                                <span>Buka Kredensial Provider</span>
+                            </a>
+                        </Button>
                     </div>
                 </div>
             </div>

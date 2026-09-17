@@ -3,6 +3,7 @@
 namespace App\Services\Storage\OAuth;
 
 use App\Models\StorageAccount;
+use App\Services\Settings\ProviderSettings;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 
@@ -36,7 +37,7 @@ class ProviderOAuth
 
     public static function supported(string $provider): bool
     {
-        return isset(self::PROVIDERS[$provider]) && config('rpebs.oauth.'.$provider.'.client_id');
+        return isset(self::PROVIDERS[$provider]) && app(ProviderSettings::class)->configured($provider);
     }
 
     public static function providerNames(): array
@@ -193,7 +194,7 @@ class ProviderOAuth
         $cfg = config('rpebs.oauth.'.$provider);
 
         if (! $cfg || ! $cfg['client_id'] || ! $cfg['client_secret']) {
-            throw new \RuntimeException("Kredensial OAuth untuk {$provider} belum diisi di .env");
+            throw new \RuntimeException("Kredensial OAuth {$provider} belum diisi. Buka Settings → Provider lalu simpan Client ID dan Client Secret.");
         }
 
         return $cfg;

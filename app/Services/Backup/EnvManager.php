@@ -6,6 +6,8 @@ class EnvManager
 {
     /**
      * Critical environment variables related to application encryption and OAuth providers.
+     * APP_KEY selalu dari .env; kredensial provider boleh berasal dari tabel
+     * settings karena ProviderSettings sudah menyalinnya ke config saat boot.
      *
      * @var array<int, string>
      */

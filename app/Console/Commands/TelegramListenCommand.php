@@ -51,7 +51,7 @@ class TelegramListenCommand extends Command
     public function handle(): int
     {
         if (! TelegramRpc::daemonConfigured()) {
-            $this->error('TELEGRAM_API_ID / TELEGRAM_API_HASH belum diisi di .env');
+            $this->error('API ID / API Hash Telegram belum diisi. Buka Settings → Provider di aplikasi.');
 
             return self::FAILURE;
         }

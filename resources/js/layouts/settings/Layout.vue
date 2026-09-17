@@ -9,6 +9,7 @@ import { edit as editAppearance } from '@/routes/appearance';
 import { edit as editPassword } from '@/routes/password';
 import { edit as editProfile } from '@/routes/profile';
 import { index as backupIndex } from '@/routes/backup';
+import { edit as editProviders } from '@/routes/providers';
 import type { NavItem } from '@/types';
 
 const sidebarNavItems: NavItem[] = [
@@ -19,6 +20,10 @@ const sidebarNavItems: NavItem[] = [
     {
         title: 'Password',
         href: editPassword(),
+    },
+    {
+        title: 'Kredensial Provider',
+        href: editProviders(),
     },
     {
         title: 'Appearance',

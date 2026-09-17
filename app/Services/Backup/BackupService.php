@@ -3,6 +3,7 @@
 namespace App\Services\Backup;
 
 use App\Exceptions\BackupException;
+use App\Services\Settings\ProviderSettings;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Artisan;
@@ -29,6 +30,7 @@ class BackupService
         'file_chunks',
         'labels',
         'labelables',
+        'settings',
     ];
 
     public function __construct(
@@ -401,23 +403,49 @@ class BackupService
             $restoredEnvKeys = [];
 
             if ($restoreEnv && isset($manifest['env']) && is_array($manifest['env'])) {
+                // APP_KEY tetap di .env: kunci inilah yang membuka kredensial lain.
                 $envUpdates = [];
 
                 if (! empty($manifest['app_key'])) {
-                    $envUpdates['APP_KEY'] = $manifest['app_key'];
                     $restoredEnvKeys[] = 'APP_KEY';
-                }
 
-                foreach ($manifest['env'] as $k => $v) {
-                    if ($v !== null && $v !== '') {
-                        $envUpdates[$k] = $v;
-                        if (! in_array($k, $restoredEnvKeys, true)) {
-                            $restoredEnvKeys[] = $k;
-                        }
+                    // Tulis hanya bila berbeda, supaya .env tidak dibuatkan berkas
+                    // cadangan baru setiap kali restore.
+                    if ($manifest['app_key'] !== config('app.key')) {
+                        $envUpdates['APP_KEY'] = $manifest['app_key'];
                     }
                 }
 
-                $this->envManager->update($envUpdates);
+                if ($envUpdates !== []) {
+                    $this->envManager->update($envUpdates);
+                }
+
+                // Kredensial provider pindah ke tabel settings (arsip lama masih
+                // menyimpannya di manifest env). Arsip baru sudah membawa tabel
+                // settings lewat database.json, jadi ini hanya jalur cadangan.
+                $providerValues = [];
+
+                foreach ($manifest['env'] as $envName => $envValue) {
+                    if (! is_string($envName) || ! is_string($envValue) || $envValue === '') {
+                        continue;
+                    }
+
+                    $settingKey = ProviderSettings::keyForEnvName($envName);
+
+                    if ($settingKey === null) {
+                        continue;
+                    }
+
+                    $providerValues[$settingKey] = $envValue;
+
+                    if (! in_array($envName, $restoredEnvKeys, true)) {
+                        $restoredEnvKeys[] = $envName;
+                    }
+                }
+
+                if ($providerValues !== []) {
+                    app(ProviderSettings::class)->set($providerValues);
+                }
             }
 
             // Clear cache config so updated APP_KEY is immediately active
